@@ -1,0 +1,2 @@
+the sersor_ide.py is to get the sensor data from the FXOS8700 through the i2c then control the R_G_B led
+the Sensor+Oled.py is to the same as the demo ahead, add the oled to display the : acc/magnet/ and a funsion angle with acc+magnet
