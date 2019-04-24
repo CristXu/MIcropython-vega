@@ -28,7 +28,6 @@ def draw_clock_1(gui, a=0, div = 2, cx=64, cy=64, amp = 1.0, rLen = 9, leaves=12
 			x = int(cx + math.cos(t*step + ofs) * rad)
 			y = int(cy + math.sin(t*step + ofs) * rad)
 			w = r // div
-			print(x,y,w)
 			gui.put_box(x, y,x+w,y+w)
 
 def OpenSwim(draw = 0, kbps=12000):
@@ -166,7 +165,7 @@ while(True):
 	gui.put_text_xy("yMagnet = %d"%yMagnet, 10, 60)
 	gui.put_text_xy("zMagnet = %d"%zMagnet, 10, 75)
 	gui.put_text_xy("fAngle  =", 10, 90)
-	gui.put_text_xy("[%.1f,%.1f,%.1f]"%(fAngle[0],fAngle[1],fAngle[2]), 10, 105)
+	gui.put_text_xy("[%.1f,%.1f,%.1f]"%(fAngle[0],fAngle[1],fAngle[2]), 15, 105)
 	#gui.set_font(gui.FONT6x13)
 	#gui.put_text_xy("VEGA BOARD DEMO", 20,105)
 	draw_clock_1(gui, cnt, div=1, cx=105, cy=30, amp = 0.8, rLen = 3, leaves=3)
