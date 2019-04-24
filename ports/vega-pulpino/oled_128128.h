@@ -40,17 +40,6 @@
 
 #define	BUFF_LEN	32
 
-typedef struct {
-	uint8_t		port;
-	uint8_t		pin;
-	uint32_t	modefunc;
-	bool		init_state;
-} SPI_GPIO_T;
-
-#define PIN_DATA	DATA
-#define PIN_RST		RST
-#define PIN_VPP		VPP
-
 void OLED_Fill(uint8_t c);
 
 void OLED_cls(void);

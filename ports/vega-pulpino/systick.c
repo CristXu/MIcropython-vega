@@ -14,3 +14,7 @@ void systick_sleep(uint32_t ms)
 	volatile uint32_t curr_ticks = systick_current_mills();
 	while((systick_current_mills() - curr_ticks) < ms);
 }
+
+void mp_hal_delay_ms(uint32_t Delay) {
+	systick_sleep(Delay);
+}

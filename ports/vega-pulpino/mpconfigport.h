@@ -8,6 +8,7 @@
 
 #define MICRO_HW_HAS_I2C           (1)
 #define MICRO_HW_HAS_LED           (1)
+#define MICROPY_HW_HAS_SWITCH        (1)
 #define MICROPY_HW_ENABLE_RNG      (1)
 #define MICROPY_HW_HAS_FS_MOUNT    (0)   
 #define MICROPY_HW_HAS_SDCARD      (0)
@@ -32,8 +33,8 @@
 #define MICROPY_COMP_DOUBLE_TUPLE_ASSIGN (1)
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
 #define MICROPY_COMP_RETURN_IF_EXPR (1)
-#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (1)
-#define MICROPY_MEM_STATS           (1)
+#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (0)
+#define MICROPY_MEM_STATS           (0)
 #define MICROPY_USE_READLINE_HISTORY (1)
 #define MICROPY_DEBUG_PRINTERS      (0)
 #define MICROPY_ENABLE_GC           (1)
@@ -112,6 +113,11 @@ typedef unsigned mp_uint_t; // must be pointer size
 
 typedef long mp_off_t;
 
+typedef enum _enum_rootPtrs
+{
+	rootptr_oledfb = 0,
+}enum_rootPtrs;
+
 #define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
 // extra built in names to add to the global namespace
@@ -127,7 +133,8 @@ typedef long mp_off_t;
 #define MP_STATE_PORT MP_STATE_VM
 
 #define MICROPY_PORT_ROOT_POINTERS \
-    const char *readline_hist[8];
+    const char *readline_hist[8]; \
+	void *pvPortRoots[16];
 
 extern uint32_t g_mstatus;
 static inline void enable_irq(mp_uint_t state){

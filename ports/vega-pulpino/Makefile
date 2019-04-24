@@ -3,6 +3,7 @@ include ../../py/mkenv.mk
 # Point this to Vega-SDK
 VEGA_SDK ?= /opt/eclipse/workplace/rv32m1_sdk_riscv
 NXP_SWIM_DIR ?=./nxp_swim
+AY_IMU_DIR ?= ./ay_imu
 
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
@@ -16,6 +17,11 @@ INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
 INC += -I$(NXP_SWIM_DIR)
+INC += -I$(NXP_SWIM_DIR)/inc
+INC += -I$(AY_IMU_DIR)
+INC += -I$(AY_IMU_DIR)/core
+INC += -I$(AY_IMU_DIR)/filter
+INC += -I$(AY_IMU_DIR)/math
 INC += -I$(VEGA_SDK)/RISCV
 INC += -I$(VEGA_SDK)/devices
 INC += -I$(VEGA_SDK)/devices/RV32M1
@@ -43,9 +49,15 @@ SRC_C = \
 	modpyb.c \
 	systick.c \
 	modmcu.c \
+	usrsw.c \
+	oled_128128.c \
 	modmachine.c \
 	mphalport.c \
 	bufhelper.c \
+	$(wildcard $(NXP_SWIM_DIR)/*.c) \
+    $(NXP_SWIM_DIR)/drivers/lpc_oled_driver.c \
+	$(wildcard $(AY_IMU_DIR)/core/*.c $(AY_IMU_DIR)/filter/*.c $(AY_IMU_DIR)/math/*.c) \
+	$(AY_IMU_DIR)/py_imu.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_common.c \
 	$(VEGA_SDK)/devices/RV32M1/system_RV32M1_ri5cy.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_msmc.c \
@@ -59,6 +71,7 @@ SRC_C = \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_intmux.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_lpi2c.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_lpuart.c \
+	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_lpspi.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_trng.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/pyexec.c \

@@ -5,11 +5,8 @@
 #include "py/nlr.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
-#include "pin.h"
-#include "genhdr/pins.h"
 #include "bufhelper.h"
 #include "oled_128128.h"
-#include "mpconfigboard.h"
 #include "py_swim.h"
 
 pyb_swim_obj_t pyb_swim_obj[1] = {

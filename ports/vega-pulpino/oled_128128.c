@@ -37,8 +37,6 @@
 #include "py/nlr.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
-#include "pin.h"
-#include "genhdr/pins.h"
 #include "bufhelper.h"
 #include "fsl_gpio.h"
 #include "oled_128128.h"
@@ -48,7 +46,6 @@
 #include "fsl_lpspi.h"
 #include "fsl_lpspi_edma.h"
 #include "fsl_port.h"
-#include "fsl_mux.h"
 #define PIN4_IDX                         4u   /*!< Pin number for pin 4 in a port */
 #define PIN5_IDX                         5u   /*!< Pin number for pin 5 in a port */
 #define PIN6_IDX                         6u   /*!< Pin number for pin 6 in a port */
@@ -57,12 +54,12 @@
 #define LPSPI_BASEADDR (LPSPI0)
 #define LPSPI_CLOCK_NAME (kCLOCK_Lpspi0)
 #define LPSPI_CLOCK_SOURCE ( kCLOCK_IpSrcFircAsync)
-#define LPSPI_CLOCK_FREQ (CLOCK_GetIpFreq(LPISPI_CLOCK_NAME))
+#define LPSPI_CLOCK_FREQ (CLOCK_GetIpFreq(LPSPI_CLOCK_NAME))
 
 #define LPSPI_PCS_FOR_INIT (kLPSPI_Pcs2)
 #define LPSPI_PCS_FOR_TRANSFER (kLPSPI_MasterPcs2)
 
-#define TRANSFER_SIZE (512U);	    /*! Transfer dataSize.*/
+#define TRANSFER_SIZE (1U);	    /*! Transfer dataSize.*/
 #define TRANSFER_BAUDRATE (500000U) /*! Transfer baudrate - 500k */
 void ConfigSpiPin()
 {
@@ -87,13 +84,13 @@ void Init_SPI(uint32_t baudrate)
     masterConfig.lastSckToPcsDelayInNanoSec = 1000000000 / masterConfig.baudRate;
     masterConfig.betweenTransferDelayInNanoSec = 1000000000 / masterConfig.baudRate;
 
-	masterConfig.whichPcs = EXAMPLE_LPSPI_MASTER_PCS_FOR_INIT;
+	masterConfig.whichPcs = LPSPI_PCS_FOR_INIT;
     masterConfig.pcsActiveHighOrLow = kLPSPI_PcsActiveLow;
 
     masterConfig.pinCfg = kLPSPI_SdiInSdoOut;
     masterConfig.dataOutConfig = kLpspiDataOutRetained;
 
-    LPSPI_MasterInit(LPISPI_BASEADDR, &masterConfig, LPSPI_CLOCK_FREQ);
+    LPSPI_MasterInit(LPSPI_BASEADDR, &masterConfig, LPSPI_CLOCK_FREQ);
 	
 }
 void spi_transfer(size_t txLen, const uint8_t *src, size_t rxLen, uint8_t *dest, uint32_t timeout, bool isCtrlSSEL) 
@@ -121,51 +118,64 @@ void spi_transfer(size_t txLen, const uint8_t *src, size_t rxLen, uint8_t *dest,
 		while (LPSPI_GetStatusFlags(LPSPI_BASEADDR) & kLPSPI_ModuleBusyFlag) {}
 	}	
 cleanup:
-    LPSPI_Deinit(LPSPI_BASEADDR);
-	if (st != kStatus_Success)
+	if (st != kStatus_Success){  //make a stupid error....ignore the brace, use the python so often... 
+		LPSPI_Deinit(LPSPI_BASEADDR);
 		printf("Please try to reinit a swim module!\n");
 		nlr_raise(mp_obj_new_exception_msg(&mp_type_TypeError, "Transfer Failed!"));
+	}
 }
 
-pin_obj_t COMMON
-#define DATA 
-#define RST
-#endif VPP
+#define PIN1_IDX 1u
+#define PIN2_IDX 2u
+#define PIN3_IDX 3u
+pin_obj_t COMMON_PIN[3] = {
+	{.port = PORTB, .gpio = GPIOB, .pin = PIN1_IDX},
+	{.port = PORTB, .gpio = GPIOB, .pin = PIN2_IDX},
+	{.port = PORTB, .gpio = GPIOB, .pin = PIN3_IDX},
+};
+#define DATA COMMON_PIN[0]
+#define RST  COMMON_PIN[1]
+#define VPP  COMMON_PIN[2]
+
+#define PIN_DATA	DATA
+#define PIN_RST		RST
+#define PIN_VPP		VPP
+
+#endif
 void OLED_IO_hw_init(void)
 {
 	gpio_pin_config_t t;
 	t.pinDirection = kGPIO_DigitalOutput , t.outputLogic = 1;    
 	// we use GPIO to control SSEL
-	
-	mp_hal_pin_config(&PIN_DATA, GPIO_FILTEROFF | GPIO_MODE_DIGITAL, MP_HAL_PIN_PULL_UP, 0);
-	GPIO_PinInit(GPIO, PIN_DATA.port, PIN_DATA.pin, &t);
+	PORT_SetPinMux(PIN_DATA.port, PIN_DATA.pin, kPORT_MuxAsGpio);
+    GPIO_PinInit(PIN_DATA.gpio, PIN_DATA.pin, &t);
 
-	mp_hal_pin_config(&PIN_RST, GPIO_FILTEROFF | GPIO_MODE_DIGITAL, MP_HAL_PIN_PULL_UP, 0);
-	GPIO_PinInit(GPIO, PIN_RST.port, PIN_RST.pin, &t);
+	PORT_SetPinMux(PIN_RST.port, PIN_RST.pin, kPORT_MuxAsGpio);
+    GPIO_PinInit(PIN_RST.gpio, PIN_RST.pin, &t);
 
-	mp_hal_pin_config(&PIN_VPP, GPIO_FILTEROFF | GPIO_MODE_DIGITAL, MP_HAL_PIN_PULL_UP, 0);
+	PORT_SetPinMux(PIN_VPP.port, PIN_VPP.pin, kPORT_MuxAsGpio);
 	t.outputLogic = 0; 
-	GPIO_PinInit(GPIO, PIN_VPP.port, PIN_VPP.pin, &t);
+    GPIO_PinInit(PIN_VPP.gpio, PIN_VPP.pin, &t);
 }
 
 void OLED_IO_vpp(bool state) {
-	GPIO_WritePinOutput(GPIO, PIN_VPP.port, PIN_VPP.pin, state);
+	GPIO_WritePinOutput(GPIOB, PIN_VPP.pin, state);
 }
 
 void OLED_IO_reset(bool state) {
-	GPIO_WritePinOutput(GPIO, PIN_RST.port, PIN_RST.pin, !state);
+	GPIO_WritePinOutput(GPIOB, PIN_RST.pin, !state);
 }
 
 void OLED_IO_cmd(void) {
-	GPIO_WritePinOutput(GPIO, PIN_DATA.port, PIN_DATA.pin, 0);
+	GPIO_WritePinOutput(GPIOB, PIN_DATA.pin, 0);
 }
 
 void OLED_IO_data(void) {
-	GPIO_WritePinOutput(GPIO, PIN_DATA.port, PIN_DATA.pin, 1);
+	GPIO_WritePinOutput(GPIOB, PIN_DATA.pin, 1);
 }
 
 void OLED_IO_write(uint8_t *pData, uint32_t cbTx) {
-	spi_transfer(PYB_SPI_9, cbTx, pData, 0, 0, 100, 1);
+	spi_transfer(cbTx, pData, 0, 0, 100, 1);
 }
 
 //
@@ -180,7 +190,7 @@ static uint8_t init_seq[] = {
 	0x50,		//	100Hz
 	0x20,		//	Set row address
 	0x81,		//	Set contrast control
-	0xc0,
+	0xef,
 	0xa0,		//	Segment remap
 	0xa4,		//	Set Entire Display ON
 	0xa6,		//	Normal display
@@ -252,11 +262,11 @@ void OLED_init(uint32_t dispClockRate)
 
     mp_arg_val_t args[] = {
         {.u_int = 0},	// 0 = master, !0 = slave
-        {.u_int = 2000000},
-        {.u_int = 0},
-        {.u_int = 0},
+        {.u_int = 2000000}, // baudrate
+        {.u_int = 0},     // polarity
+        {.u_int = 0},	 // phase
         {.u_int = 8},
-        {.u_int = kSPI_MsbFirst},
+        {.u_int = kLPSPI_MsbFirst},
 		// >>> unsupported/unnessary args, keep for compatibility
         {.u_int = 0xffffffff},
         {.u_int = 0},
@@ -274,14 +284,25 @@ void OLED_init(uint32_t dispClockRate)
 
 	OLED_IO_vpp(1);				//	power panel
 	OLED_IO_reset(1);				//	start reset
-	mp_hal_delay_us(100);						//	20uS delay
+	//mp_hal_delay_us(100);						//	we do not support the US now, so use the 1ms to replace
+	mp_hal_delay_ms(1);
 	OLED_IO_reset(0);			//	release reset
 	mp_hal_delay_ms(100);						//	wait for SH1107 to come out of reset
 
 	for (i=0; i<init_seq_ct; i++) {		//	loop through init sequence
 		WriteCmd(init_seq[i]);			//	write the command
 	}
-	OLED_Fill(0x08);							//	clear oled
+	OLED_Fill(0x80);							//	clear oled, the oled use 8-pixel as 1B;
+	/*         example : 0x80          */
+	/* 		   111111111....
+			   000000000....
+			   000000000....
+			   000000000....
+			   000000000....
+			   000000000....
+			   000000000....
+			   000000000....
+	*/ 
 	WriteCmd(0xaf);						//	enable OLED
 }
 
