@@ -25,6 +25,9 @@ static uint32_t lcd_pow(uint8_t m, uint8_t n);
 static uint8_t  LCD_BYTE_WRITE(uint8_t data);
 static uint16_t LCD_WORD_WRITE(uint16_t data);
 
+#define INVERSE_MSB(x) \
+	(uint16_t)(((x & 0xff) << 8) | ((x & 0xff00) >> 8))
+
 /* -------------------------------------------------------------------------- */
 /*                             Private functions                              */
 /* -------------------------------------------------------------------------- */
@@ -98,7 +101,8 @@ static uint8_t LCD_BYTE_WRITE(uint8_t data)
 */
 static uint16_t LCD_WORD_WRITE(uint16_t data)
 {
-	spi_transfer(2, (uint8_t*)&data, 0, 0, 100);
+	uint16_t temp = INVERSE_MSB(data);
+	spi_transfer(2, (uint8_t*)&data, 0, 0, 100); //lcd store the MSB first, need to inverse the uint16_data
 }
 
 /**
@@ -167,11 +171,12 @@ void lcd_clear_screen(uint16_t color)
     uint32_t i, cnt = 0;
 	const uint32_t nPixelSet = 32; //send n pixels one time
 	uint16_t temp[nPixelSet];
+	uint16_t color2send = INVERSE_MSB(color); //MSB first, need to convert the data
 	for(int i=0;i<nPixelSet;){
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
 	}
     cnt = LCD_WIDTH * LCD_HEIGHT;
 
@@ -212,11 +217,12 @@ void lcd_clear_block(uint16_t xpos, uint16_t ypos, uint16_t color)
     uint32_t i;
 	const uint32_t nPixelSet = 240;
 	uint16_t temp[nPixelSet];
+	uint16_t color2send = INVERSE_MSB(color);
 	for(int i=0;i<nPixelSet;){
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
 	}
     lcd_set_cursor(xpos, ypos);
     lcd_write_byte(0x22, LCD_CMD);
@@ -242,13 +248,14 @@ void lcd_clear_const_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h,
 	uint32_t cur_xpos = xpos, cur_ypos = ypos;
 	const uint32_t nPixelSet = w;
 	uint16_t temp[nPixelSet];
+	uint16_t color2send = INVERSE_MSB(color);
 	// Set 4-value in one time
 	uint32_t fLoop = w/4;
 	for(i=0;i<fLoop * 4;){
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
-		temp[i++] = color;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
+		temp[i++] = color2send;
 	}
 	// Handle the exist value in temp;
 	uint16_t *pS, *pE;
