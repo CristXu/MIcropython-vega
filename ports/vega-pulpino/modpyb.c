@@ -44,6 +44,7 @@
 #include "test.h"
 #include "py_swim.h"
 #include "py_imu.c"
+#include "py_lcd.h"
 #include "modmachine.h"
 
 
@@ -78,6 +79,7 @@ STATIC const mp_rom_map_elem_t pyb_module_globals_table[] = {
 #endif
 	{ MP_ROM_QSTR(MP_QSTR_SWIM), MP_ROM_PTR(&pyb_swim_type) },
 	{ MP_ROM_QSTR(MP_QSTR_IMU), MP_ROM_PTR(&pyb_imu_type) },
+	{ MP_ROM_QSTR(MP_QSTR_LCD), MP_ROM_PTR(&pyb_lcd_type) },
 	{ MP_ROM_QSTR(MP_QSTR_hard_reset),       MP_ROM_PTR(&machine_reset_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_info),       MP_ROM_PTR(&machine_info_obj) },
  	{ MP_ROM_QSTR(MP_QSTR_unique_id),  MP_ROM_PTR(&machine_unique_id_obj) },

@@ -45,15 +45,10 @@ STATIC mp_obj_t pyb_swim_init_helper(pyb_swim_obj_t *self, mp_uint_t n_args, con
 
 STATIC mp_obj_t pyb_swim_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) 
 {
-    // check arguments
-    mp_arg_check_num(n_args, n_kw, 1, MP_OBJ_FUN_ARGS_MAX, true);
-	
-    if (n_args > 1 || n_kw > 0) {
-        // start the peripheral
-        mp_map_t kw_args;
-        mp_map_init_fixed_table(&kw_args, n_kw, args + n_args);
-        pyb_swim_init_helper(&pyb_swim_obj[0], n_args - 1, args + 1, &kw_args);
-    }
+    // start the peripheral
+    mp_map_t kw_args;
+    mp_map_init_fixed_table(&kw_args, n_kw, args + n_args);
+    pyb_swim_init_helper(&pyb_swim_obj[0], n_args, args, &kw_args);
 
     return (mp_obj_t)&pyb_swim_obj[0];	
 }

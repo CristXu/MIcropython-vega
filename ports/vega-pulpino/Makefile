@@ -4,6 +4,7 @@ include ../../py/mkenv.mk
 VEGA_SDK ?= /opt/eclipse/workplace/rv32m1_sdk_riscv
 NXP_SWIM_DIR ?=./nxp_swim
 AY_IMU_DIR ?= ./ay_imu
+LCD_DIR ?= ./lcd
 
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
@@ -22,6 +23,7 @@ INC += -I$(AY_IMU_DIR)
 INC += -I$(AY_IMU_DIR)/core
 INC += -I$(AY_IMU_DIR)/filter
 INC += -I$(AY_IMU_DIR)/math
+INC += -I$(LCD_DIR)
 INC += -I$(VEGA_SDK)/RISCV
 INC += -I$(VEGA_SDK)/devices
 INC += -I$(VEGA_SDK)/devices/RV32M1
@@ -45,6 +47,7 @@ SRC_C = \
 	i2c.c \
 	led.c \
 	rng.c \
+	spi.c \
 	py_time.c \
 	modpyb.c \
 	systick.c \
@@ -54,6 +57,7 @@ SRC_C = \
 	modmachine.c \
 	mphalport.c \
 	bufhelper.c \
+	$(wildcard $(LCD_DIR)/*.c) \
 	$(wildcard $(NXP_SWIM_DIR)/*.c) \
     $(NXP_SWIM_DIR)/drivers/lpc_oled_driver.c \
 	$(wildcard $(AY_IMU_DIR)/core/*.c $(AY_IMU_DIR)/filter/*.c $(AY_IMU_DIR)/math/*.c) \

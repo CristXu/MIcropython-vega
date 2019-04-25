@@ -62,6 +62,7 @@ extern uint32_t _stack_size;
 extern uint32_t _estack;
 extern uint32_t _heap_start;
 extern uint32_t _heap_end;
+#include "lcd.h"
 int main(int argc, char **argv) {
 	uint32_t retCode;
     // Initialization block taken from led_fade.c
@@ -72,6 +73,7 @@ int main(int argc, char **argv) {
 		Systick_Init(); // init the systick timer
     }
 
+	
 soft_reset:    
     //note: the value from *.ld is the value store in the address of the ram, such as _estack is the value store in the real address in ram, so should use & to get the real address
 #if INIT_LED_PIN_WITH_FUNC_PTR

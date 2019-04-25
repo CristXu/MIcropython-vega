@@ -23,9 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
+
 #include "fsl_lpspi.h"
 #include "fsl_lpspi_edma.h"
 
-void Init_SPI(uint32_t baudrate);
-void spi_transfer(size_t txLen, const uint8_t *src, size_t rxLen, uint8_t *dest, uint32_t timeout);
+
+#define SPI_OBJ_FLAG_ENABLED	1
+#define SPI_OBJ_FLAG_BUSY		2
+#define SPI_OBJ_FLAG_CPHA		3
+#define SPI_OBJ_FLAG_CPOL		4
+
+
+extern const mp_obj_type_t pyb_spi_type;
+extern const mp_obj_type_t mp_machine_soft_spi_type;
+extern const mp_obj_type_t machine_hard_spi_type;
+
+
+void spi_init0(void);
+void spi_init(pyb_spi_obj_t *self);
+bool pyb_spi_init_c(pyb_spi_t ndx, mp_arg_val_t args[]);
+void spi_transfer(pyb_spi_t ndx, size_t txLen, const uint8_t *src, size_t rxLen, uint8_t *dest, uint32_t timeout, bool isCtrlSSEL);
+void spi_deinit(pyb_spi_t ndx);
+
+int *spi_get_handle(mp_obj_t o);
