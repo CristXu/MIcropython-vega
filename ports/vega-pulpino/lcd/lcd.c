@@ -102,7 +102,7 @@ static uint8_t LCD_BYTE_WRITE(uint8_t data)
 static uint16_t LCD_WORD_WRITE(uint16_t data)
 {
 	uint16_t temp = INVERSE_MSB(data);
-	spi_transfer(2, (uint8_t*)&data, 0, 0, 100); //lcd store the MSB first, need to inverse the uint16_data
+	spi_transfer(2, (uint8_t*)&temp, 0, 0, 100); //lcd store the MSB first, need to inverse the uint16_data
 }
 
 /**
