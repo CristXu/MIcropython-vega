@@ -31,11 +31,12 @@ STATIC mp_obj_t pyb_lcd_init_helper(pyb_lcd_obj_t *self, mp_uint_t n_args, const
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-	if (args[0].u_int == LCD_FONT_1608) {
+	if ((args[0].u_int == LCD_FONT_1608) || (args[0].u_int == LCD_FONT_1206)){
 		self->font = args[0].u_int;
 		lcd_init(args[1].u_int);
-	}
-	
+	}else 
+		nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError,
+				"Font does not support!"));
     return mp_const_none;
 }
 
