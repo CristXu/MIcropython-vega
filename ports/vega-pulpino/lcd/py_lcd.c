@@ -121,6 +121,18 @@ STATIC mp_obj_t pyb_lcd_put_text_xy(size_t n_args, const mp_obj_t *args) {
 	return mp_const_none;
 }
 
+STATIC mp_obj_t pyb_lcd_put_text_block_xy(size_t n_args, const mp_obj_t *args) {
+	pyb_lcd_obj_t *self = MP_OBJ_TO_PTR(args[0]);
+	const char *str = mp_obj_str_get_str(args[1]);
+    mp_int_t x = mp_obj_get_int(args[2]);
+    mp_int_t y = mp_obj_get_int(args[3]);
+	uint16_t col = LCD_COLOR_WHITE;
+	if (n_args>4)
+		col = mp_obj_get_int(args[4]);
+	lcd_display_block_string(x, y, str, self->font,col);
+	return mp_const_none;
+}
+
 
 STATIC mp_obj_t pyb_lcd_put_char_xy(size_t n_args, const mp_obj_t *args) {
 	pyb_lcd_obj_t *self = MP_OBJ_TO_PTR(args[0]);
@@ -164,6 +176,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_clear_block_obj, 3, 4, pyb_lc
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_clear_const_block_obj, 3, 6, pyb_lcd_clear_const_block);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_set_bkg_color_obj, 2, 2, pyb_lcd_set_bkg_color); 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_text_xy_obj, 4, 5, pyb_lcd_put_text_xy);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_text_block_xy_obj, 4, 5, pyb_lcd_put_text_block_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_char_xy_obj, 4, 5, pyb_lcd_put_char_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_set_font_obj, 1, 2, pyb_lcd_set_font);
 
@@ -176,6 +189,7 @@ STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
 	{ MP_ROM_QSTR(MP_QSTR_set_bkg_color), MP_ROM_PTR(&pyb_lcd_set_bkg_color_obj) },
 
 	{ MP_ROM_QSTR(MP_QSTR_put_text_xy), MP_ROM_PTR(&pyb_lcd_put_text_xy_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_put_text_block_xy), MP_ROM_PTR(&pyb_lcd_put_text_block_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_put_char_xy), MP_ROM_PTR(&pyb_lcd_put_char_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_set_font), MP_ROM_PTR(&pyb_lcd_set_font_obj) },
 

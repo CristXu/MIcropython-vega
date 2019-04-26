@@ -49,6 +49,13 @@ LCD_HEIGHT
 #define LCD_COLOR_BRRED          0XFC07 
 #define LCD_COLOR_GRAY           0X8430 
 #define LCD_COLOR_CUSTOM1        0xFCC6
+
+typedef struct _block_t {
+	uint16_t* data;
+	uint16_t w;
+	uint16_t h;
+} block_t;
+	
 /* LCD command or data define */
 #define LCD_CMD                  0
 #define LCD_DATA                 1
@@ -83,7 +90,7 @@ extern void    lcd_clear_const_block(uint16_t xpos, uint16_t ypos, uint32_t w, u
 extern void    lcd_display_char(uint16_t xpos, uint16_t ypos, uint8_t chr, uint8_t font, uint16_t color) ;
 extern void    lcd_display_num(uint16_t xpos, uint16_t ypos, uint32_t num, uint8_t len, uint8_t size, uint16_t color) ;
 extern void    lcd_display_string(uint16_t xpos, uint16_t ypos, const uint8_t *string, uint8_t size, uint16_t color);
-
+extern void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *string, uint8_t size, uint16_t color);
 extern void    lcd_refresh_init(uint16_t color);
 extern void    lcd_refresh_icon(uint16_t x, uint16_t y);
 extern void    lcd_write_byte(uint8_t data, uint8_t cmd);

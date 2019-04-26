@@ -108,7 +108,7 @@ def put_text(string, y):
 	char1,char2 = string.split('=') #split the string to caculate the length of the char, to get the display axies to clear the area
 	xClear = (len(char1) + 1) * wFont + x # have one "=", need to add one
 	lcd.clear_const_block(xClear, y, LCD.BLACK, len(char2) * wFont , hFont) #clear the display area
-	lcd.put_text_xy(string, x, y)
+	lcd.put_text_block_xy(string, x, y)
 	
 i2c_conf()
 sensorRange = i2c.mem_read(1,0x1E,0x0e)[0]

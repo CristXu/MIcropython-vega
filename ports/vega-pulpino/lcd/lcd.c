@@ -278,7 +278,7 @@ void lcd_clear_const_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h,
 }
 
 /**
- * @brief       lcd_clear_block     display a char at the position on lcd
+ * @brief       lcd_display_char     display a char at the position on lcd
  * @param[0]    xpos                x position
  * @param[1]    ypos                y position
  * @param[2]    chr                 a char
@@ -364,7 +364,7 @@ void lcd_display_string(uint16_t xpos, uint16_t ypos, const uint8_t *string, uin
 {
     while (*string != '\0')
     {
-        if (xpos > (LCD_WIDTH - size/2))
+        if (xpos > (LCD_WIDTH - size/2)) //exceed the x_bounder, display on the next line
         {
           xpos = 0;
           ypos += size;
@@ -378,6 +378,155 @@ void lcd_display_string(uint16_t xpos, uint16_t ypos, const uint8_t *string, uin
         xpos += size / 2;
         string ++;
     }
+}
+
+/**
+ * @brief       lcd_init_block      Init the given block with the data to display
+ * @param[2]    chr                 a char paste to block
+ * @param[3]    font                font type
+ * @param[4]    color               displayed color
+ * @param[5]    block               the pointer of current block struct prepare to paint
+ * @ret         NULL
+*/
+void lcd_init_block(uint8_t chr, uint8_t font, uint8_t cnt, uint16_t color, block_t *block) 
+{
+	uint16_t offset = cnt * font / 2; // point the current char_num to paste to the block;
+	/* the * replace the current position of the char in block, 
+	   so need to record the offset, use j*w + offset + i; (offset+i, j))
+		. . * . . 
+		. . * . .
+		. . * . .
+        . . * . .
+	*/ 
+    uint8_t i, j, temp;
+    uint16_t xpos = 0, ypos = 0;
+    for (i = 0; i < font; i ++)
+    {
+        if (font == LCD_FONT_1206 )
+        {
+            temp = Font1206[chr - 0x20][i];
+        }
+        else if (LCD_FONT_1608 == font)
+        {
+            temp = Font1608[chr - 0x20][i];
+        }
+
+        for (j = 0; j < 8; j ++)
+        {
+            if (temp & 0x80)
+            {
+                block->data[ypos*block->w+xpos+offset] = INVERSE_MSB(color); // draw the char through the row, use a wrong width, mutiple char, must use the wFont*len(string)
+            }
+            temp <<= 1;
+            ypos ++;
+            if (ypos == font)
+            {
+                ypos = 0;
+                xpos ++;
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * @brief       lcd_paint_block     paint a part of lcd with color & the given block buffer
+ * @param[0]    xpos                x position
+ * @param[1]    ypos                y position
+ * @param[2]    w                   block width
+ * @param[3]    h                   block height
+ * @param[4]    block               a pointer of the block struct to paint
+ * @ret         NULL
+*/
+void lcd_paint_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h, 	block_t *block)
+{
+    uint32_t i, j=0;
+	uint32_t cur_xpos = xpos, cur_ypos = ypos;
+	const uint32_t nPixelSet = w;
+    lcd_set_cursor(cur_xpos, cur_ypos);
+    lcd_write_byte(0x22, LCD_CMD);
+
+    LCD_DC_SET();
+    for (i = 0; i < w*h; i+= nPixelSet) {
+        LCD_MULTI_WORD_WRITE((uint8_t*)(block->data+j*w), 2*nPixelSet);
+		j += 1;
+		cur_ypos++;
+		lcd_set_cursor(cur_xpos, cur_ypos);
+		lcd_write_byte(0x22, LCD_CMD);
+		LCD_DC_SET();
+    }
+}
+
+/**
+ * @brief       lcd_display_block_string     put a string into a block-buf then to display at the position on lcd.
+ * @param[0]    xpos                   x position
+ * @param[1]    ypos                   y position
+ * @param[2]    *string                string to display
+ * @param[3]    size                   the size of the string
+ * @param[4]    color                  displayed color
+ * @ret         NULL
+*/
+void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *string, uint8_t size, uint16_t color)  
+{
+	uint32_t max_num = 15; // limit the max send char one time, when we loss this, the malloc area will overflow the mp_heap.... for the mp_heap just after the system-heap...
+	extern uint32_t _heap_start;
+	uint16_t lStr = strlen(string);
+	block_t block;
+	uint8_t n_block = lStr / max_num;
+	uint8_t exist_block = lStr % max_num;
+	uint16_t cur_x = xpos, cur_y=ypos;
+	uint32_t eHeap = &_heap_start;
+	while(n_block--)
+	{
+		block.w = max_num * (size >> 1);
+		block.h = size;
+		block.data = (uint16_t*)malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
+		if(block.data)
+		{
+			if ( (uint32_t)&block.data[block.w*block.h-1] >= eHeap) // in case overflow the heap & mp_heap area
+				goto error;
+			memset(block.data, 0, ((block.w * block.h)<<1));
+			uint8_t cnt = 0;
+			uint8_t nStr = max_num;
+			while (nStr--)
+			{
+				lcd_init_block((uint8_t)*string, size, cnt++, color, &block);
+				string ++;
+			}
+			lcd_paint_block(cur_x, cur_y, block.w , block.h, &block);
+			cur_x += block.w;
+			free(block.data);
+		}else
+			goto error;
+	}
+	if(exist_block != 0){
+		block.w = exist_block * (size >> 1);
+		block.h = size;
+		block.data = (uint16_t*)malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
+		if(block.data)
+		{
+			if ( (uint32_t)&block.data[block.w*block.h-1] >= eHeap) // in case overflow the heap & mp_heap area
+				goto error;
+			memset(block.data, 0, ((block.w * block.h)<<1));
+			uint8_t cnt = 0;
+			uint8_t nStr = max_num;
+			while (*string != '\0')
+			{
+				lcd_init_block((uint8_t)*string, size, cnt++, color, &block);
+				string ++;
+			}
+			lcd_paint_block(cur_x, cur_y, block.w , block.h, &block);
+			free(block.data);
+			return;
+		}else
+			goto error;
+	}
+	return;
+error:
+	printf("Memory error, no enough space, exceed %d !",(uint32_t)&block.data[block.w*block.h-1] - eHeap );
+	free(block.data);
+	return;
+		
 }
 
 /**
