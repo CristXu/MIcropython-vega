@@ -8,7 +8,8 @@
 
 #define MICRO_HW_HAS_I2C           (1)
 #define MICRO_HW_HAS_LED           (1)
-#define MICROPY_HW_HAS_SWITCH        (1)
+#define MICROPY_HW_HAS_SWITCH      (1)
+#define MICROPY_HW_DISPLAY_ICON    (1)
 #define MICROPY_HW_ENABLE_RNG      (1)
 #define MICROPY_HW_HAS_FS_MOUNT    (0)   
 #define MICROPY_HW_HAS_SDCARD      (0)
