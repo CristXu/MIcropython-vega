@@ -19,7 +19,6 @@
 #include "clock_config.h"
 
 #define INIT_LED_PIN_WITH_FUNC_PTR (0)
-#define MICROPY_HW_DISPLAY_ICON    (1)
 
 void Systick_Init(void)
 {   
