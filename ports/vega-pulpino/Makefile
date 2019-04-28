@@ -5,7 +5,7 @@ VEGA_SDK ?= /opt/eclipse/workplace/rv32m1_sdk_riscv
 NXP_SWIM_DIR ?=./nxp_swim
 AY_IMU_DIR ?= ./ay_imu
 LCD_DIR ?= ./lcd
-
+ICON_DIR ?= ./icon
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
 
@@ -24,6 +24,7 @@ INC += -I$(AY_IMU_DIR)/core
 INC += -I$(AY_IMU_DIR)/filter
 INC += -I$(AY_IMU_DIR)/math
 INC += -I$(LCD_DIR)
+INC += -I$(ICON_DIR)
 INC += -I$(VEGA_SDK)/RISCV
 INC += -I$(VEGA_SDK)/devices
 INC += -I$(VEGA_SDK)/devices/RV32M1
@@ -33,8 +34,8 @@ INC += -I$(VEGA_SDK)/devices/RV32M1/utilities
 ASM_SRCS += $(VEGA_SDK)/devices/RV32M1/gcc/startup_RV32M1_ri5cy.S 
 
 DBFLAGS = -DNDEBUG -DCPU_RV32M1_ri5cy -DPRINTF_FLOAT_ENABLE=0 -DSCANF_FLOAT_ENABLE=0 -DPRINTF_ADVANCED_ENABLE=0 -DSCANF_ADVANCED_ENABLE=0
-CFLAGS = $(INC) $(DBFLAGS) -O0 -msmall-data-limit=8 -mno-save-restore -flto -g -fmessage-length=0 -fsigned-char -fno-common -ffreestanding -fno-builtin -fno-strict-aliasing -std=gnu99 -march=rv32imcxpulpv2 -Wa,-march=rv32imcxpulpv2
-LDFLAGS = -T RV32M1_ri5cy_flash.ld -g -nostdlib -flto -O0 -Wl,-Map,micropython.map -march=rv32imcxpulpv2 -Xlinker -static -Xlinker -z -Xlinker muldefs -Xlinker -static -Xlinker -z -Xlinker muldefs
+CFLAGS = $(INC) $(DBFLAGS) -O2 -msmall-data-limit=8 -mno-save-restore -flto -g -fmessage-length=0 -fsigned-char -fno-common -ffreestanding -fno-builtin -fno-strict-aliasing -std=gnu99 -march=rv32imcxpulpv2 -Wa,-march=rv32imcxpulpv2
+LDFLAGS = -T RV32M1_ri5cy_flash.ld -g -nostdlib -flto -O2 -Wl,-Map,micropython.map -march=rv32imcxpulpv2 -Xlinker -static -Xlinker -z -Xlinker muldefs -Xlinker -static -Xlinker -z -Xlinker muldefs
 LIBS = -lnosys -lgcc -lc -lm -lm -lg -lgcc -lnosys -Xlinker --end-group 
 
 SRC_C = \
@@ -62,6 +63,7 @@ SRC_C = \
     $(NXP_SWIM_DIR)/drivers/lpc_oled_driver.c \
 	$(wildcard $(AY_IMU_DIR)/core/*.c $(AY_IMU_DIR)/filter/*.c $(AY_IMU_DIR)/math/*.c) \
 	$(AY_IMU_DIR)/py_imu.c \
+	$(ICON_DIR)/icon.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_common.c \
 	$(VEGA_SDK)/devices/RV32M1/system_RV32M1_ri5cy.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_msmc.c \

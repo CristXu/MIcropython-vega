@@ -29,6 +29,7 @@ OUTPUT_ARCH( "riscv" )
 HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x1000;
 STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x1000;
 MP_HEAP_SIZE = DEFINED(__mp_heap_size__) ? __mp_heap_size__ : 0x13000;
+MP_STACK_SIZE = DEFINED(__mp_stack_size__) ? __mp_stack_size__ : 0x5000;
 
 /* Specify the memory areas */
 MEMORY
@@ -196,5 +197,9 @@ SECTIONS
   _estack = ORIGIN(m_data) + LENGTH(m_data);
   _heap_start = __mp_heap;
   _heap_end = _heap_start + MP_HEAP_SIZE;
+	
+  _mp_stack_limit = _estack - MP_STACK_SIZE;
+  
+  ASSERT(_mp_stack_limit >= __StackTop, "Region m_data overflowed with the mp_stack!")
 }
 

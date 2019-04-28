@@ -86,6 +86,7 @@ extern void    lcd_set_cursor(uint16_t xpos, uint16_t ypos);
 extern void    lcd_clear_screen(uint16_t color);
 extern void    lcd_draw_point(uint16_t xpos, uint16_t ypos, uint16_t color);
 extern void    lcd_clear_block(uint16_t xpos, uint16_t ypos, uint16_t color);
+extern void    lcd_paint_block(uint16_t xpos, uint16_t ypos, block_t *block);
 extern void    lcd_clear_const_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h, uint16_t color);
 extern void    lcd_display_char(uint16_t xpos, uint16_t ypos, uint8_t chr, uint8_t font, uint16_t color) ;
 extern void    lcd_display_num(uint16_t xpos, uint16_t ypos, uint32_t num, uint8_t len, uint8_t size, uint16_t color) ;

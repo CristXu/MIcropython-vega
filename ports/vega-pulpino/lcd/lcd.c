@@ -438,10 +438,12 @@ void lcd_init_block(uint8_t chr, uint8_t font, uint8_t cnt, uint16_t color, bloc
  * @param[4]    block               a pointer of the block struct to paint
  * @ret         NULL
 */
-void lcd_paint_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h, 	block_t *block)
+void lcd_paint_block(uint16_t xpos, uint16_t ypos, block_t *block)
 {
     uint32_t i, j=0;
 	uint32_t cur_xpos = xpos, cur_ypos = ypos;
+	uint32_t w = block->w;
+	uint32_t h = block->h;
 	const uint32_t nPixelSet = w;
     lcd_set_cursor(cur_xpos, cur_ypos);
     lcd_write_byte(0x22, LCD_CMD);
@@ -493,7 +495,7 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 				lcd_init_block((uint8_t)*string, size, cnt++, color, &block);
 				string ++;
 			}
-			lcd_paint_block(cur_x, cur_y, block.w , block.h, &block);
+			lcd_paint_block(cur_x, cur_y, &block);
 			cur_x += block.w;
 			free(block.data);
 		}else
@@ -515,7 +517,7 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 				lcd_init_block((uint8_t)*string, size, cnt++, color, &block);
 				string ++;
 			}
-			lcd_paint_block(cur_x, cur_y, block.w , block.h, &block);
+			lcd_paint_block(cur_x, cur_y, &block);
 			free(block.data);
 			return;
 		}else

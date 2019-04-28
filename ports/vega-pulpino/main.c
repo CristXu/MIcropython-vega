@@ -18,6 +18,7 @@
 #include "clock_config.h"
 
 #define INIT_LED_PIN_WITH_FUNC_PTR (0)
+#define MICROPY_HW_DISPLAY_ICON    (1)
 
 void Systick_Init(void)
 {   
@@ -63,6 +64,7 @@ extern uint32_t _estack;
 extern uint32_t _heap_start;
 extern uint32_t _heap_end;
 #include "lcd.h"
+#include "icon.h"
 int main(int argc, char **argv) {
 	uint32_t retCode;
     // Initialization block taken from led_fade.c
@@ -73,11 +75,18 @@ int main(int argc, char **argv) {
 		Systick_Init(); // init the systick timer
     }
 
-	
+	block_t icon_main;
 soft_reset:    
     //note: the value from *.ld is the value store in the address of the ram, such as _estack is the value store in the real address in ram, so should use & to get the real address
 #if INIT_LED_PIN_WITH_FUNC_PTR
 	led_init0();
+#endif
+#if MICROPY_HW_DISPLAY_ICON
+	icon_main.w = big_w;
+	icon_main.h = big_h;
+	icon_main.data = big;
+	lcd_init(24000000);
+	lcd_paint_block((240-icon_main.w)/2, (320-icon_main.h)/2, &icon_main);
 #endif
     mp_stack_set_top(&_estack);
     mp_stack_set_limit(&_stack_size);

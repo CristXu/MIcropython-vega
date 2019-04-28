@@ -7,8 +7,14 @@
 #include "py/mphal.h"
 #include "bufhelper.h"
 #include "lcd.h"
+#include "icon.h"
 #include "py_lcd.h"
 
+typedef enum {
+	ICON_SMALL = 0,
+	ICON_MEDIUM,
+	ICON_BIG,
+};
 pyb_lcd_obj_t pyb_lcd_obj = { .base = {&pyb_lcd_type}, .font = LCD_FONT_1206};
 
 void pyb_lcd_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
@@ -168,6 +174,65 @@ STATIC mp_obj_t pyb_lcd_set_font(size_t n_args, const mp_obj_t *args) {
 	return mp_const_none;
 }
 
+STATIC mp_obj_t pyb_lcd_put_icon_xy(size_t n_args, const mp_obj_t *args) {
+	pyb_lcd_obj_t *self = MP_OBJ_TO_PTR(args[0]);
+    mp_int_t x = mp_obj_get_int(args[1]);
+    mp_int_t y = mp_obj_get_int(args[2]);
+	mp_int_t icon_size = ICON_SMALL;
+	block_t icon;
+	if (n_args>3)
+		icon_size = mp_obj_get_int(args[3]);
+	switch(icon_size){
+		case ICON_SMALL:
+			icon.w = small_w;
+			icon.h = small_h;
+			icon.data = small;
+			lcd_paint_block(x, y, &icon);
+			break;
+		case ICON_MEDIUM:
+			icon.w = medium_w;
+			icon.h = medium_h;
+			icon.data = medium;
+			lcd_paint_block(x, y, &icon);
+			break;
+		case ICON_BIG:
+			icon.w = big_w;
+			icon.h = big_h;
+			icon.data = big;
+			lcd_paint_block(x, y, &icon);
+			break;
+		default:
+			nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError,
+				"The size does not support!"));
+	}
+	return mp_const_none;
+}
+
+static mp_obj_t pyb_lcd_get_icon_size(mp_obj_t self, mp_obj_t size) 
+{
+	char *str;
+	uint8_t lStr;
+	mp_int_t icon_size = mp_obj_get_int(size);
+	switch(icon_size){
+		case ICON_SMALL:
+			str = "ICON_30X17";
+			lStr =strlen(str);
+			break;
+		case ICON_MEDIUM:
+			str = "ICON_60X34";
+			lStr =strlen(str);
+			break;
+		case ICON_BIG:
+			str = "ICON_240X136";
+			lStr =strlen(str);
+			break;
+		default:
+			nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError,
+				"The size does not support!"));
+	}	
+	return mp_obj_new_str(str, lStr);
+}
+
 // -----------------------------------------------------------------------------------------
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(pyb_lcd_init_obj, 1, pyb_lcd_init);
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(pyb_lcd_deinit_obj, pyb_lcd_deinit);
@@ -177,6 +242,8 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_clear_const_block_obj, 3, 6, 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_set_bkg_color_obj, 2, 2, pyb_lcd_set_bkg_color); 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_text_xy_obj, 4, 5, pyb_lcd_put_text_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_text_block_xy_obj, 4, 5, pyb_lcd_put_text_block_xy);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(pyb_lcd_get_icon_size_obj, pyb_lcd_get_icon_size);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_icon_xy_obj, 3, 4, pyb_lcd_put_icon_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_char_xy_obj, 4, 5, pyb_lcd_put_char_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_set_font_obj, 1, 2, pyb_lcd_set_font);
 
@@ -190,6 +257,8 @@ STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
 
 	{ MP_ROM_QSTR(MP_QSTR_put_text_xy), MP_ROM_PTR(&pyb_lcd_put_text_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_put_text_block_xy), MP_ROM_PTR(&pyb_lcd_put_text_block_xy_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_get_icon_size), MP_ROM_PTR(&pyb_lcd_get_icon_size_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_put_icon_xy), MP_ROM_PTR(&pyb_lcd_put_icon_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_put_char_xy), MP_ROM_PTR(&pyb_lcd_put_char_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_set_font), MP_ROM_PTR(&pyb_lcd_set_font_obj) },
 
@@ -210,6 +279,9 @@ STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
 	{ MP_ROM_QSTR(MP_QSTR_BROWN), MP_ROM_INT(LCD_COLOR_BROWN) },
 	{ MP_ROM_QSTR(MP_QSTR_BRRED), MP_ROM_INT(LCD_COLOR_BRRED) },
 	{ MP_ROM_QSTR(MP_QSTR_GRAY), MP_ROM_INT(LCD_COLOR_GRAY) },
+	{ MP_ROM_QSTR(MP_QSTR_ICON_BIG), MP_ROM_INT(ICON_BIG) },
+	{ MP_ROM_QSTR(MP_QSTR_ICON_MEDIUM), MP_ROM_INT(ICON_MEDIUM) },
+	{ MP_ROM_QSTR(MP_QSTR_ICON_SMALL), MP_ROM_INT(ICON_SMALL) },
 
 };
 

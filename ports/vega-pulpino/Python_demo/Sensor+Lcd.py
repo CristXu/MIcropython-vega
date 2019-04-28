@@ -123,6 +123,7 @@ cnt = 0;
 t1 = time.ticks()
 lcd.clear_screen()
 
+lcd.put_icon_xy(180,0,LCD.ICON_MEDIUM)
 while(True):
 	start = time.ticks()
 	# get all the accl status
