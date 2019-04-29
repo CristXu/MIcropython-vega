@@ -36,6 +36,7 @@
 #include "fsl_lpi2c.h"
 #include "pin_mux.h"
 #include "i2c.h"
+#include "bufhelper.h"
 
 
 
@@ -558,7 +559,7 @@ STATIC mp_obj_t pyb_i2c_send(mp_uint_t n_args, const mp_obj_t *pos_args, mp_map_
         	{
         	}
 			if((status = LPI2C_MasterSend(self->pI2C, bufinfo.buf, 1)) != kStatus_Success)
-				return status;
+				return mp_obj_new_int(status);
       } else {
             status = status; // todo: dma
         }
@@ -644,7 +645,7 @@ STATIC mp_obj_t pyb_i2c_recv(mp_uint_t n_args, const mp_obj_t *pos_args, mp_map_
         	{
        		}
 			if((reVal = LPI2C_MasterReceive(self->pI2C, vstr.buf, vstr.len)) != kStatus_Success)
-				return reVal;
+				return mp_obj_new_int(reVal);
 			//before we set a i2c_stop here, but meet some erro, all because that the i2c on vega-board is special than RT, the receive must befind the send, no need to stop the i2c then re-start.
         	} else {
             // todo: DMA

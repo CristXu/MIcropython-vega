@@ -81,6 +81,7 @@ SRC_C = \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_trng.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/pyexec.c \
+	lib/utils/interrupt_char.c \
 	lib/mp-readline/readline.c
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o)) $(addprefix $(BUILD)/, $(ASM_SRCS:.S=.o))

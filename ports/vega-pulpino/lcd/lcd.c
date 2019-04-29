@@ -477,7 +477,7 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 	uint8_t n_block = lStr / max_num;
 	uint8_t exist_block = lStr % max_num;
 	uint16_t cur_x = xpos, cur_y=ypos;
-	uint32_t eHeap = &_heap_start;
+	uint32_t eHeap = (uint32_t)&_heap_start;
 	while(n_block--)
 	{
 		block.w = max_num * (size >> 1);

@@ -12,6 +12,8 @@ typedef struct pin_obj_t{
 
 #define mp_hal_pin_obj_t const pin_obj_t*
 
+void mp_hal_set_interrupt_char(int c); // -1 to disable
+
 static inline void mp_hal_pin_write(GPIO_Type *pGpio, uint32_t pin, uint32_t bitLevel) {
 	GPIO_WritePinOutput(pGpio, pin, bitLevel);
 }

@@ -1,0 +1,4 @@
+use the read_logo.py to generate the icon data with the *.jpg in the dir;
+you can put your own jpg into this folder, and rename the file to the name,
+and it will also be the name of the generated data that you can directly use
+it in the code.
