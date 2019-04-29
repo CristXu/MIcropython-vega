@@ -1,4 +1,4 @@
-import time,gc
+import time
 import math
 import micropython
 from pyb import I2C;
@@ -171,5 +171,4 @@ while(True):
 	#lcd.set_font(lcd.FONT_1608)
 	#lcd.put_text_xy("VEGA BOARD DEMO", 20,105)
 	print("xAngle is %.5f, yAngle is %.5f, zAngle is %.5f"%(xAngle,yAngle,zAngle))
-	gc.collect()
 	cnt += 1;

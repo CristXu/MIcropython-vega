@@ -19,6 +19,7 @@
 #include "clock_config.h"
 
 #define INIT_LED_PIN_WITH_FUNC_PTR (0)
+#define ENABLE_GC_OUTPUT		   (0)
 
 void Systick_Init(void)
 {   
@@ -118,11 +119,14 @@ unknown_exit:
 }
 
 void gc_collect(void) {
+	void *dummy; //maybe not the real-sp but we can assume that the dummy is the last varible allocated in the stack, so it is the current sp.
+	uint32_t sp; //the real sp
+	__ASM volatile("addi %0, x2, 0" : "=r"(sp));
 #if ENABLE_GC_OUTPUT
     printf("gc_collect\n");
 #endif
     gc_collect_start();
-    gc_collect_root((void**)&__stack, ((uint32_t)&_estack - (uint32_t)&__stack) / sizeof(uint32_t) );
+    gc_collect_root((void**)sp, ((uint32_t)&_estack - (uint32_t)sp) / sizeof(uint32_t) );
     gc_collect_end();
 #if ENABLE_GC_OUTPUT
     gc_dump_info();
