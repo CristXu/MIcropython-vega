@@ -28,5 +28,5 @@ static inline void mp_hal_pin_toggle(const pin_obj_t *pPin){
 	uint32_t a, pinNdx = pPin->pin;
 	a = (0 == GPIO_ReadPinInput(pPin->gpio, pinNdx) );
 	GPIO_WritePinOutput(pPin->gpio, pinNdx, a);
-	
+	//GPIO_TogglePinsOutput(pPin->gpio, 1<<pinNdx);
 }

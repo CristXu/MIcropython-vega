@@ -8,7 +8,7 @@
 #define PIN9_IDX 9u
 #define PIN12_IDX 12u
 
-#define NUM_SW 1
+#define NUM_SW 4
 
 #define MICROPY_HW_USRSW_PRESSED (0)
 typedef enum {

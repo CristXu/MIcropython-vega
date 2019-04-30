@@ -14,7 +14,7 @@ typedef enum {
 } SW_NAME;
 
 /* Define the init structure for the input sw*/
-const port_pin_config_t port_sw_config = {
+port_pin_config_t port_sw_config = {
     kPORT_PullUp,                                            /* Internal pull-up resistor is enabled */
     kPORT_FastSlewRate,                                      /* Fast slew rate is configured */
     kPORT_PassiveFilterDisable,                              /* Passive filter is disabled */
@@ -29,16 +29,7 @@ gpio_pin_config_t sw_config = {
         kGPIO_DigitalInput, 0,
     };
 
-//use pin-struct to do the gpio init:
-void Init_SW_Pin(pin_obj_t *pin)
-{
-	CLOCK_EnableClock(kCLOCK_PortE); 
-	PORT_SetPinConfig(pin->port, pin->pin, &port_sw_config);
-	PORT_SetPinMux(pin->port, pin->pin, kPORT_MuxAsGpio);
-    GPIO_PinInit(pin->gpio, pin->pin, &sw_config);
-}  
-
-static pin_obj_t pyb_pin_sw_obj[4] = {
+pin_obj_t pyb_pin_sw_obj[4] = {
 	{.port = PORTA, .gpio = GPIOA, .pin = PIN0_IDX},
 	{.port = PORTE, .gpio = GPIOE, .pin = PIN8_IDX}, 
 	{.port = PORTE, .gpio = GPIOE, .pin = PIN9_IDX}, 
@@ -46,11 +37,24 @@ static pin_obj_t pyb_pin_sw_obj[4] = {
 };
 
 pyb_sw_obj_t pyb_sw_obj[4] = {
-	{.base = &pyb_sw_type, .sw_id = PYB_SW_0, .sw_pin = &pyb_pin_sw_obj[0]},
-	{.base = &pyb_sw_type, .sw_id = PYB_SW_1, .sw_pin = &pyb_pin_sw_obj[1]},
-	{.base = &pyb_sw_type, .sw_id = PYB_SW_2, .sw_pin = &pyb_pin_sw_obj[2]},
-	{.base = &pyb_sw_type, .sw_id = PYB_SW_3, .sw_pin = &pyb_pin_sw_obj[3]},
+	{.base = {&pyb_sw_type}, .sw_id = PYB_SW_0, .sw_pin = &pyb_pin_sw_obj[0]},
+	{.base = {&pyb_sw_type}, .sw_id = PYB_SW_1, .sw_pin = &pyb_pin_sw_obj[1]},
+	{.base = {&pyb_sw_type}, .sw_id = PYB_SW_2, .sw_pin = &pyb_pin_sw_obj[2]},
+	{.base = {&pyb_sw_type}, .sw_id = PYB_SW_3, .sw_pin = &pyb_pin_sw_obj[3]},
 };
+
+//use pin-struct to do the gpio init:
+void Init_SW_Pin(pin_obj_t *pin)
+{
+	if((pin - pyb_pin_sw_obj) > 0)
+	{
+		CLOCK_EnableClock(kCLOCK_PortE);
+		CLOCK_EnableClock(kCLOCK_Rgpio1);
+	}
+	PORT_SetPinConfig(pin->port, pin->pin, &port_sw_config);
+	PORT_SetPinMux(pin->port, pin->pin, kPORT_MuxAsGpio);
+    GPIO_PinInit(pin->gpio, pin->pin, &sw_config);
+}  
 
 mp_obj_t sw_value(mp_obj_t self) {
 	pyb_sw_obj_t *s = (pyb_sw_obj_t*)self;

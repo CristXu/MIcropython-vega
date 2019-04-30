@@ -298,8 +298,7 @@ static bool LPI2C_WriteBlock(LPI2C_Type *base, uint8_t device_addr, uint8_t reg_
     }
 }
 
-bool i2c_init(uint32_t ndx, uint32_t baudRate) {
-	
+bool i2c_init(uint32_t ndx, uint32_t baudRate) {	
     CLOCK_EnableClock(kCLOCK_Rgpio1);
 	BOARD_I2C_ReleaseBus();
 	BOARD_I2C_ConfigurePins();
@@ -320,6 +319,7 @@ void i2c_deinit(uint32_t ndx) {
 	pyb_i2c_obj_t *pOb = pyb_i2c_obj + ndx;
 	LPI2C_MasterDeinit(pOb->pI2C);
 	CLOCK_DisableClock(pOb->myClock);
+	CLOCK_EnableClock(kCLOCK_Rgpio1);
 	DisableIRQ(pOb->irqn);
 }
 

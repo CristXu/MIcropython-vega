@@ -1,12 +1,15 @@
 import time
 import math
 import micropython
+import machine
 from pyb import I2C;
 from pyb import LED;
 from pyb import LCD;
 from pyb import IMU;
+from pyb import Switch;
 i2c=I2C(3,I2C.MASTER,baudrate=10000); 
 lcd=LCD(baudrate=24000000)
+s = Switch(Switch.SW4)
 # Max baudrate is 24000000; 24M, same the SPI Clock
 imu=IMU(0,0,delta_ms=0.02)
 r=LED(LED.RED); g=LED(LED.GREEN); b=LED(LED.BLUE)
@@ -124,7 +127,10 @@ t1 = time.ticks()
 lcd.clear_screen()
 
 lcd.put_icon_xy(180,0,LCD.ICON_MEDIUM)
+
 while(True):
+	if(s()):
+		machine.soft_reset()
 	start = time.ticks()
 	# get all the accl status
 	status = i2c.mem_read(2*AXIES+1,0x1E,0x00)
@@ -134,10 +140,6 @@ while(True):
 	yAngle = yData * dataScale * 90 / 8192
 	zAngle = zData * dataScale * 90 / 8192
 	light_led(xAngle, yAngle, zAngle)
-	t2 = time.ticks()
-	dt = t2 - t1
-	t1 = t2
-	e = imu.step(status[1:], status[1:], None, dt/1000.0)
 	#print("Eula Angle is [%.4f, %.4f, %.4f]"%(e[0], e[1], e[2]))
 	# get all the magnet status and magnet offset
 	status = i2c.mem_read(2*AXIES, 0x1E, 0x33)
