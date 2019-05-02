@@ -78,7 +78,21 @@ typedef struct _block_t {
 /*                            functions extenal claim                         */
 /* -------------------------------------------------------------------------- */
 
+#include "py/mphal.h"
 extern volatile uint16_t g_LCDDispBuf[];
+
+static inline void *safe_malloc(uint32_t size){
+	uint32_t mask = disable_irq();
+	void* p = (void*)malloc(size);
+	enable_irq(mask);
+	return p;
+}
+
+static inline void *safe_free(void* ptr){
+	uint32_t mask = disable_irq();
+	free(ptr);
+	enable_irq(mask);
+}
 
 extern uint8_t lcd_init(uint32_t dispClockRate);
 

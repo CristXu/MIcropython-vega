@@ -24,6 +24,7 @@ static void     lcd_delayms(uint32_t count);
 static uint32_t lcd_pow(uint8_t m, uint8_t n);
 static uint8_t  LCD_BYTE_WRITE(uint8_t data);
 static uint16_t LCD_WORD_WRITE(uint16_t data);
+static uint16_t LCD_MULTI_WORD_WRITE(uint16_t* data, uint16_t len);
 
 #define INVERSE_MSB(x) \
 	(uint16_t)(((x & 0xff) << 8) | ((x & 0xff00) >> 8))
@@ -101,8 +102,8 @@ static uint8_t LCD_BYTE_WRITE(uint8_t data)
 */
 static uint16_t LCD_WORD_WRITE(uint16_t data)
 {
-	uint16_t temp = INVERSE_MSB(data);
-	spi_transfer(2, (uint8_t*)&temp, 0, 0, 100); //lcd store the MSB first, need to inverse the uint16_data
+	uint8_t send_data[2] = {(data & 0xff00)>>8, data&0xff};
+	spi_transfer(2, send_data, 0, 0, 100); //lcd store the MSB first, need to inverse the uint16_data
 }
 
 /**
@@ -111,9 +112,41 @@ static uint16_t LCD_WORD_WRITE(uint16_t data)
  * @param[1]    size             size to send
  * @ret         spi return read data
 */
-static uint16_t LCD_MULTI_WORD_WRITE(uint8_t* data, uint16_t len)
+static uint16_t LCD_MULTI_WORD_WRITE(uint16_t* data, uint16_t len)
 {
+	#if HIGH_LEVEL_OPTIMIZE	
+	uint8_t *transfer = (uint8_t*)safe_malloc(len);
+	if(transfer){
+		uint8_t exist = len % 8; //copy 8 Byte one time
+		int i = 0;
+		for(;i<(len - exist);){
+			transfer[i++]   = (*(data)) & 0xff;
+			transfer[i++] = ((*(data++)) & 0xff00) >> 8;
+			transfer[i++] = (*(data)) & 0xff;
+			transfer[i++] = ((*(data++)) & 0xff00) >> 8;
+			transfer[i++] = (*(data)) & 0xff;
+			transfer[i++] = ((*(data++)) & 0xff00) >> 8;
+			transfer[i++] = (*(data)) & 0xff;
+			transfer[i++] = ((*(data++)) & 0xff00) >> 8;
+		}		
+		for(int j=0;j<exist/2;j++){
+			transfer[i++]   = (*(data)) & 0xff;
+			transfer[i++] = ((*(data++)) & 0xff00) >> 8; 
+		}
+		spi_transfer(len, transfer, 0, 0, 100);
+		safe_free(transfer);
+		transfer = NULL;
+	}
+	else{
+		printf("Malloc failed! No enough space!\n");
+		safe_free(transfer);
+		transfer = NULL;
+		return -1;
+	}
+		
+	#else
 	spi_transfer(len, (uint8_t*)data, 0, 0, 100);
+	#endif
 }
 
 /**
@@ -187,7 +220,7 @@ void lcd_clear_screen(uint16_t color)
 	// Send 64 Bytes one time, but the lcd will accept one 16-bit as a pixel, so the len will be the len of the (uint16), need to sizeof(temp)/sizeof(uint16_t);
     for (i = 0; i < cnt; i += nPixelSet)
     {
-		LCD_MULTI_WORD_WRITE((uint8_t*)temp, sizeof(temp));
+		LCD_MULTI_WORD_WRITE(temp, sizeof(temp));
     }
 }
 
@@ -229,7 +262,7 @@ void lcd_clear_block(uint16_t xpos, uint16_t ypos, uint16_t color)
 
     LCD_DC_SET();
     for (i = 0; i < 240*32; i += nPixelSet) {
-        LCD_MULTI_WORD_WRITE((uint8_t*)temp, sizeof(temp));
+        LCD_MULTI_WORD_WRITE(temp, sizeof(temp));
     }
 }
 
@@ -269,7 +302,7 @@ void lcd_clear_const_block(uint16_t xpos, uint16_t ypos, uint32_t w, uint32_t h,
 
     LCD_DC_SET();
     for (i = 0; i < w*h; i+= nPixelSet) {
-        LCD_MULTI_WORD_WRITE((uint8_t*)temp, sizeof(temp));
+        LCD_MULTI_WORD_WRITE(temp, sizeof(temp));
 		cur_ypos++;
 		lcd_set_cursor(cur_xpos, cur_ypos);
 		lcd_write_byte(0x22, LCD_CMD);
@@ -450,7 +483,7 @@ void lcd_paint_block(uint16_t xpos, uint16_t ypos, block_t *block)
 
     LCD_DC_SET();
     for (i = 0; i < w*h; i+= nPixelSet) {
-        LCD_MULTI_WORD_WRITE((uint8_t*)(block->data+j*w), 2*nPixelSet);
+        LCD_MULTI_WORD_WRITE((block->data+j*w), nPixelSet<<1);
 		j += 1;
 		cur_ypos++;
 		lcd_set_cursor(cur_xpos, cur_ypos);
@@ -482,7 +515,7 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 	{
 		block.w = max_num * (size >> 1);
 		block.h = size;
-		block.data = (uint16_t*)malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
+		block.data = (uint16_t*)safe_malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
 		if(block.data)
 		{
 			if ( (uint32_t)&block.data[block.w*block.h-1] >= eHeap) // in case overflow the heap & mp_heap area
@@ -497,14 +530,15 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 			}
 			lcd_paint_block(cur_x, cur_y, &block);
 			cur_x += block.w;
-			free(block.data);
+			safe_free(block.data);
+			block.data = NULL;
 		}else
 			goto error;
 	}
 	if(exist_block != 0){
 		block.w = exist_block * (size >> 1);
 		block.h = size;
-		block.data = (uint16_t*)malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
+		block.data = (uint16_t*)safe_malloc(((block.w * block.h)<<1)); // if size=FONT_1206, the len int byte is 12 * 6 * 2 * strlen(string) == pixelH * pixelW * sizeof(uint16_t) * strlen(string);
 		if(block.data)
 		{
 			if ( (uint32_t)&block.data[block.w*block.h-1] >= eHeap) // in case overflow the heap & mp_heap area
@@ -518,7 +552,8 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 				string ++;
 			}
 			lcd_paint_block(cur_x, cur_y, &block);
-			free(block.data);
+			safe_free(block.data);
+			block.data = NULL;
 			return;
 		}else
 			goto error;
@@ -526,7 +561,8 @@ void lcd_display_block_string(uint16_t xpos, uint16_t ypos, const uint8_t *strin
 	return;
 error:
 	printf("Memory error, no enough space, exceed %d !",(uint32_t)&block.data[block.w*block.h-1] - eHeap );
-	free(block.data);
+	safe_free(block.data);
+	block.data = NULL;
 	return;
 		
 }

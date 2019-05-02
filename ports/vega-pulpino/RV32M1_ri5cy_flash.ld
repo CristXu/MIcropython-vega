@@ -194,6 +194,7 @@ SECTIONS
   _etext = __etext;
   _stack_size = STACK_SIZE;
   _estack = __StackTop;
+  _ram_start = ORIGIN(m_data);
   _ram_end = ORIGIN(m_data) + LENGTH(m_data);
   _heap_start = __mp_heap;
   _heap_end = _heap_start + MP_HEAP_SIZE;

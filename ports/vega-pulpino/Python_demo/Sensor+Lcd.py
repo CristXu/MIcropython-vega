@@ -1,4 +1,4 @@
-import time
+import time,gc
 import math
 import micropython
 import machine
@@ -98,8 +98,7 @@ def sensor_fusion(acc, mag):
 	Bx = g_Mx * cosAngle + g_Mz * sinAngle
 	
 	# Calcute aw angle
-	g_Yaw = math.atan2(-By, Bx) * RadToDeg
-	
+	g_Yaw = math.atan2(-By, Bx) * RadToDeg	
 	return [g_Roll, g_Pitch, g_Yaw]
 
 def put_text(string, y):
@@ -125,12 +124,10 @@ if sensorRange == 0x10:
 cnt = 0;
 t1 = time.ticks()
 lcd.clear_screen()
-
 lcd.put_icon_xy(180,0,LCD.ICON_MEDIUM)
-
 while(True):
 	if(s()):
-		machine.soft_reset()
+		break
 	start = time.ticks()
 	# get all the accl status
 	status = i2c.mem_read(2*AXIES+1,0x1E,0x00)
@@ -173,4 +170,6 @@ while(True):
 	#lcd.set_font(lcd.FONT_1608)
 	#lcd.put_text_xy("VEGA BOARD DEMO", 20,105)
 	print("xAngle is %.5f, yAngle is %.5f, zAngle is %.5f"%(xAngle,yAngle,zAngle))
+	time.sleep(10)
+	gc.collect()
 	cnt += 1;

@@ -59,11 +59,6 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     }
 }
 
-extern uint32_t __stack;
-extern uint32_t _stack_size;
-extern uint32_t _estack;
-extern uint32_t _heap_start;
-extern uint32_t _heap_end;
 #include "lcd.h"
 #include "icon.h"
 int main(int argc, char **argv) {
@@ -126,7 +121,8 @@ void gc_collect(void) {
     printf("gc_collect\n");
 #endif
     gc_collect_start();
-    gc_collect_root((void**)sp, ((uint32_t)&_estack - (uint32_t)sp) / sizeof(uint32_t) );
+	//gc_collect_root((void**)&__stack, ((uint32_t)&_ram_end - (uint32_t)&__stack) / sizeof(uint32_t) );
+    gc_collect_root((void**)sp, ((uint32_t)&_estack - (uint32_t)sp) / sizeof(uint32_t) ); //sp and &sp have the same effect
     gc_collect_end();
 #if ENABLE_GC_OUTPUT
     gc_dump_info();

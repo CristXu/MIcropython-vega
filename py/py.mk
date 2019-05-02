@@ -320,6 +320,9 @@ $(PY_BUILD)/nlr%.o: CFLAGS += -Os
 # optimising gc for speed; 5ms down to 4ms on pybv2
 $(PY_BUILD)/gc.o: CFLAGS += $(CSUPEROPT)
 
+# specify the repl.o tp low level optimize, the O2 will have a bad result
+$(PY_BUILD)/repl.o: CFLAGS += -O2
+
 # optimising vm for speed, adds only a small amount to code size but makes a huge difference to speed (20% faster)
 $(PY_BUILD)/vm.o: CFLAGS += $(CSUPEROPT)
 # Optimizing vm.o for modern deeply pipelined CPUs with branch predictors
