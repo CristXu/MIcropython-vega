@@ -115,6 +115,7 @@ static uint16_t LCD_WORD_WRITE(uint16_t data)
 static uint16_t LCD_MULTI_WORD_WRITE(uint16_t* data, uint16_t len)
 {
 	#if HIGH_LEVEL_OPTIMIZE	
+	extern uint32_t _heap_start;
 	uint8_t *transfer = (uint8_t*)safe_malloc(len);
 	if(transfer){
 		uint8_t exist = len % 8; //copy 8 Byte one time
