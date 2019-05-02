@@ -34,7 +34,7 @@ INC += -I$(VEGA_SDK)/devices/RV32M1/utilities
 ASM_SRCS += $(VEGA_SDK)/devices/RV32M1/gcc/startup_RV32M1_ri5cy.S 
 
 OP_LEVEL = 2
-OP_DEFINE = -DHIGH_LEVEL_OPTIMIZE=$(OP_LEVEL) -O$(OP_LEVEL)
+OP_DEFINE = -DHIGH_LEVEL_OPTIMIZE=0 -O$(OP_LEVEL)
 DBFLAGS = -DNDEBUG -DCPU_RV32M1_ri5cy -DPRINTF_FLOAT_ENABLE=0 -DSCANF_FLOAT_ENABLE=0 -DPRINTF_ADVANCED_ENABLE=0 -DSCANF_ADVANCED_ENABLE=0
 # CFLAGS for MP-file
 CFLAGS = $(INC) $(DBFLAGS) $(OP_DEFINE) -msmall-data-limit=8 -mno-save-restore -flto -g -fmessage-length=0 -fsigned-char -fno-common -ffreestanding -fno-builtin -std=gnu99 -march=rv32imcxpulpv2 -Wa,-march=rv32imcxpulpv2 -fno-strict-aliasing

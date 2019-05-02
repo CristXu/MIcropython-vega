@@ -1,4 +1,4 @@
-import time,gc
+import time
 import math
 import micropython
 import machine
@@ -171,5 +171,3 @@ while(True):
 	#lcd.put_text_xy("VEGA BOARD DEMO", 20,105)
 	print("xAngle is %.5f, yAngle is %.5f, zAngle is %.5f"%(xAngle,yAngle,zAngle))
 	time.sleep(10)
-	gc.collect()
-	cnt += 1;
