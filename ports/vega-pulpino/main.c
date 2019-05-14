@@ -11,9 +11,14 @@
 #include "py/mperrno.h"
 #include "lib/utils/pyexec.h"
 
+#include "lib/oofatfs/ff.h"
+#include "extmod/vfs.h"
+#include "extmod/vfs_fat.h"
+
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "board.h"
+#include "sdcard.h"
 #include "gccollect.h"
 #include "pin_mux.h"
 #include "clock_config.h"
@@ -59,6 +64,82 @@ void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     }
 }
 
+#if MICROPY_HW_HAS_SDCARD
+STATIC bool init_sdcard_fs(void) {
+    bool first_part = true;
+    for (int part_num = 1; part_num <= 4; ++part_num) {
+        // create vfs object
+        fs_user_mount_t *vfs_fat = m_new_obj_maybe(fs_user_mount_t);
+        mp_vfs_mount_t *vfs = m_new_obj_maybe(mp_vfs_mount_t);
+        if (vfs == NULL || vfs_fat == NULL) {
+            break;
+        }
+        vfs_fat->flags = FSUSER_FREE_OBJ;
+        sdcard_init_vfs(vfs_fat, part_num);
+
+        // try to mount the partition
+        FRESULT res = f_mount(&vfs_fat->fatfs);
+
+        if (res != FR_OK) {
+            // couldn't mount
+            m_del_obj(fs_user_mount_t, vfs_fat);
+            m_del_obj(mp_vfs_mount_t, vfs);
+        } else {
+            // mounted via FatFs, now mount the SD partition in the VFS
+            if (first_part) {
+                // the first available partition is traditionally called "sd" for simplicity
+                vfs->str = "/sd";
+                vfs->len = 3;
+            } else {
+                // subsequent partitions are numbered by their index in the partition table
+                if (part_num == 2) {
+                    vfs->str = "/sd2";
+                } else if (part_num == 2) {
+                    vfs->str = "/sd3";
+                } else {
+                    vfs->str = "/sd4";
+                }
+                vfs->len = 4;
+            }
+            vfs->obj = MP_OBJ_FROM_PTR(vfs_fat);
+            vfs->next = NULL;
+            for (mp_vfs_mount_t **m = &MP_STATE_VM(vfs_mount_table);; m = &(*m)->next) {
+                if (*m == NULL) {
+                    *m = vfs;
+                    break;
+                }
+            }
+
+            #if MICROPY_HW_ENABLE_USB
+            if (pyb_usb_storage_medium == PYB_USB_STORAGE_MEDIUM_NONE) {
+                // if no USB MSC medium is selected then use the SD card
+                pyb_usb_storage_medium = PYB_USB_STORAGE_MEDIUM_SDCARD;
+            }
+            #endif
+
+            #if MICROPY_HW_ENABLE_USB
+            // only use SD card as current directory if that's what the USB medium is
+            if (pyb_usb_storage_medium == PYB_USB_STORAGE_MEDIUM_SDCARD)
+            #endif
+            {
+                if (first_part) {
+                    // use SD card as current directory
+                    MP_STATE_PORT(vfs_cur) = vfs;
+                }
+            }
+            first_part = false;
+        }
+    }
+
+    if (first_part) {
+        printf("PYB: can't mount SD card\n");
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
 #include "lcd.h"
 #include "icon.h"
 int main(int argc, char **argv) {
@@ -72,6 +153,7 @@ int main(int argc, char **argv) {
     }
 
 	block_t icon_main;
+	bool first_soft_reset = true;
 soft_reset:    
     //note: the value from *.ld is the value store in the address of the ram, such as _estack is the value store in the real address in ram, so should use & to get the real address
 #if INIT_LED_PIN_WITH_FUNC_PTR
@@ -83,12 +165,45 @@ soft_reset:
 	icon_main.data = big;
 	lcd_init(24000000);
 	lcd_paint_block((240-icon_main.w)/2, (320-icon_main.h)/2, &icon_main);
-	LPSPI_Deinit(LPSPI0);
 #endif
     mp_stack_set_top(&_estack);
     mp_stack_set_limit(&_stack_size);
     gc_init(&_heap_start, &_heap_end);
     mp_init();
+
+	bool mounted_sdcard = false;
+#if MICROPY_HW_HAS_SDCARD
+	uint32_t sdcard_state;
+	if(first_soft_reset)
+		sdcard_state = sdcard_init();
+	if(sdcard_state != kWithout_Sdcard)
+		mounted_sdcard = init_sdcard_fs();
+#endif
+
+	MP_STATE_PORT(pyb_config_main) = MP_OBJ_NULL;
+    mp_obj_list_init(mp_sys_path, 0);
+    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
+    mp_obj_list_init(mp_sys_argv, 0);
+	
+     if (mounted_sdcard) {
+        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd));
+        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_sd_slash_lib));
+    }
+    mp_vfs_getcwd();
+      // Run the main script from the current directory.
+    const char *main_py;
+    if (MP_STATE_PORT(pyb_config_main) == MP_OBJ_NULL) {
+        main_py = "main.py";
+    } else {
+        main_py = mp_obj_str_get_str(MP_STATE_PORT(pyb_config_main));
+    }
+     mp_import_stat_t stat = mp_import_stat(main_py);
+    if (stat == MP_IMPORT_STAT_FILE) {
+        int ret = pyexec_file(main_py);
+        if (!ret) {
+            printf("ERROR!");
+        }
+    }
 	//in fact, the pyexec_friendly_repl() will answer the input from the repl, such as CTRL_D, then do the related operation or quit the function with a exit_value code, judge the value jump to correspoding function
     retCode = pyexec_friendly_repl();
     mp_deinit();
@@ -102,6 +217,7 @@ soft_reset_exit:
 #if MICROPY_PY_THREAD
     pyb_thread_deinit();
 #endif
+	first_soft_reset = false;
 	goto soft_reset;
 
 unknown_exit:
@@ -129,10 +245,6 @@ void gc_collect(void) {
     gc_dump_info();
 #endif
 
-}
-
-mp_lexer_t *mp_lexer_new_from_file(const char *filename) {
-    mp_raise_OSError(MP_ENOENT);
 }
 
 mp_import_stat_t mp_import_stat(const char *path) {

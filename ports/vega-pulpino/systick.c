@@ -5,6 +5,10 @@ static inline uint32_t HAL_GetTicks()
 	return mTicks;
 }
 
+uint32_t HAL_GetTick()
+{
+	return HAL_GetTicks();
+}
 uint32_t systick_current_mills()
 {
 	return HAL_GetTicks();

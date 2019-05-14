@@ -6,6 +6,7 @@
 #include "irq.h"
 
 volatile uint32_t mTicks;
+volatile uint32_t g_timeMilliseconds;
 uint32_t g_mstatus;
 bool g_disableIntCalled = false;
 #ifndef SysTick_Handler
@@ -15,6 +16,7 @@ void SysTick_Handler(void)
 {
     SystemClearSystickFlag(); //use a fake systick, need to clear the counting interrupt flag, same as the RT
 	mTicks++;
+	g_timeMilliseconds++;
 }
 
 

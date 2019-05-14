@@ -1,5 +1,5 @@
 /*
- * This file is part of the MicroPython project, http://micropython.org/
+ * This file is part of the Micro Python project, http://micropython.org/
  *
  * The MIT License (MIT)
  *
@@ -23,21 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifndef _SDCARD_H_
+#define _SDCARD_H_
+#include "mpconfigport.h"
+// SD card detect switch
+#define MICROPY_HW_SDCARD_DETECT_PIN        (pin_33)
+#define MICROPY_HW_SDCARD_DETECT_PULL       (1) // (GPIO_PULLUP)
+#define MICROPY_HW_SDCARD_DETECT_PRESENT    (2) // (GPIO_PIN_RESET)
 
-#include "py/runtime.h"
-#include "lib/oofatfs/ff.h"
-#include "rtc.h"
+// this is a fixed size and should not be changed
+#define SDCARD_BLOCK_SIZE (512)
+enum _sdcard_state {
+	kWithout_Sdcard = -5,
+} sdcard_state_t;
 
-MP_WEAK DWORD get_fattime(void) {
-    #if 0
-    rtc_init_finalise();
-    RTC_TimeTypeDef time;
-    RTC_DateTypeDef date;
-    HAL_RTC_GetTime(&RTCHandle, &time, RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&RTCHandle, &date, RTC_FORMAT_BIN);
-    return ((2000 + date.Year - 1980) << 25) | ((date.Month) << 21) | ((date.Date) << 16) | ((time.Hours) << 11) | ((time.Minutes) << 5) | (time.Seconds / 2);
-    #else
-    // Jan 1st, 2018 at midnight. Not sure what timezone.
-    return ((2018 - 1980) << 25) | ((1) << 21) | ((1) << 16) | ((0) << 11) | ((0) << 5) | (0 / 2);
-    #endif
-}
+status_t sdcard_init(void);
+status_t sdcard_deinit(void);
+bool sdcard_is_present(void);
+bool sdcard_power_on(void);
+void sdcard_power_off(void);
+uint64_t sdcard_get_capacity_in_bytes(void);
+uint32_t sdcard_get_lba_count(void);
+
+// these return 0 on success, non-zero on error
+mp_uint_t sdcard_read_blocks(uint8_t *dest, uint32_t block_num, uint32_t num_blocks);
+mp_uint_t sdcard_write_blocks(const uint8_t *src, uint32_t block_num, uint32_t num_blocks);
+
+extern const struct _mp_obj_type_t pyb_sdcard_type;
+extern const struct _mp_obj_base_t pyb_sdcard_obj;
+
+struct _fs_user_mount_t;
+void sdcard_init_vfs(struct _fs_user_mount_t *vfs, int part);
+#endif

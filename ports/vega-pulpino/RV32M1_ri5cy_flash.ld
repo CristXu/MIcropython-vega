@@ -26,9 +26,9 @@
 /* Entry Point */
 OUTPUT_ARCH( "riscv" )
 
-HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x1000;
+HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x3000;
 STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x6000;
-MP_HEAP_SIZE = DEFINED(__mp_heap_size__) ? __mp_heap_size__ : 0x13000;
+MP_HEAP_SIZE = DEFINED(__mp_heap_size__) ? __mp_heap_size__ : 0x12000;
 
 /* Specify the memory areas */
 MEMORY

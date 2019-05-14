@@ -12,9 +12,8 @@
 #define MICROPY_HW_DISPLAY_ICON    (1)
 #define MICROPY_HW_ENABLE_RNG      (1)
 #define MICROPY_HW_HAS_FS_MOUNT    (0)   
-#define MICROPY_HW_HAS_SDCARD      (0)
+#define MICROPY_HW_HAS_SDCARD      (1)
 #define MICROPY_HW_HAS_ADC         (0)
-#define MICROPY_HW_HAS_FS          (0)
 // options to control how MicroPython is built
 
 // You can disable the built-in MicroPython compiler by setting the following
@@ -40,13 +39,16 @@
 #define MICROPY_DEBUG_PRINTERS      (0)
 #define MICROPY_ENABLE_GC           (1)
 #define MICROPY_READER_POSIX        (0)
+#define MICROPY_READER_VFS          (1)
 #define MICROPY_USE_READLINE_HISTORY (1)
 #define MICROPY_GC_ALLOC_THRESHOLD  (0)
 #define MICROPY_REPL_EVENT_DRIVEN   (0)
 #define MICROPY_HELPER_REPL         (1)
-#define MICROPY_HELPER_LEXER_UNIX   (1)
+#define MICROPY_HELPER_LEXER_UNIX   (0)
 #define MICROPY_ENABLE_SOURCE_LINE  (1)
 #define MICROPY_KBD_EXCEPTION       (1)
+#define MICROPY_VFS					(1)
+#define MICROPY_VFS_FAT 			(1)
 //#define MICROPY_ENABLE_DOC_STRING   (0)
 #define MICROPY_ERROR_REPORTING     (MICROPY_ERROR_REPORTING_TERSE)
 #define MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG (0)
@@ -81,15 +83,28 @@
 #define MICROPY_LONGINT_IMPL        (MICROPY_LONGINT_IMPL_MPZ)
 #define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_DOUBLE)
 
+//fatfs configuration used in ffconf.h
+#define MICROPY_FATFS_ENABLE_LFN      (1)
+#define MICROPY_FATFS_LFN_CODE_PAGE   (437)
+#define MICROPY_FATFS_USE_LABEL		  (1)
+#define MICROPY_FATFS_RPATH			  (2)
+#define MICROPY_FATFS_MULTI_PARTITION (1)
+
+//use vfs's function for import stat and builtin open
+#define mp_import_stat mp_vfs_import_stat
+#define mp_builtin_open mp_vfs_open
+#define mp_builtin_open_obj mp_vfs_open_obj
 extern const struct _mp_obj_module_t machine_module;
 extern const struct _mp_obj_module_t pyb_module;
 extern const struct _mp_obj_module_t time_module;
 extern const struct _mp_obj_module_t mcu_module;
+extern const struct _mp_obj_module_t mp_module_uos;
 
 #define MICROPY_PORT_BUILTIN_MODULES \
 	{ MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) },	\
 	{ MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) },	\
     { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) }, \
+	{ MP_ROM_QSTR(MP_QSTR_os), MP_ROM_PTR(&mp_module_uos) }, \
 	{ MP_ROM_QSTR(MP_QSTR_time), MP_ROM_PTR(&time_module) }, \
 	{ MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) },
 
@@ -97,7 +112,6 @@ extern const struct _mp_obj_module_t mcu_module;
 	{ MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) },	\
 	{ MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) },	\
     { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) }, \
-	{ MP_ROM_QSTR(MP_QSTR_time), MP_ROM_PTR(&time_module) }, \
 	{ MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) },
 
 // type definitions for the specific machine
@@ -136,6 +150,7 @@ typedef enum _enum_rootPtrs
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8]; \
+	mp_obj_t pyb_config_main; \
 	void *pvPortRoots[16];
 
 extern uint32_t g_mstatus;

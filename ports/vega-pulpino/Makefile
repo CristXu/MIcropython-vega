@@ -30,10 +30,12 @@ INC += -I$(VEGA_SDK)/devices
 INC += -I$(VEGA_SDK)/devices/RV32M1
 INC += -I$(VEGA_SDK)/devices/RV32M1/drivers
 INC += -I$(VEGA_SDK)/devices/RV32M1/utilities
+INC += -I$(TOP)/lib/oofatfs
+INC += -I$(VEGA_SDK)/middleware/sdmmc_2.1.2/inc
 
 ASM_SRCS += $(VEGA_SDK)/devices/RV32M1/gcc/startup_RV32M1_ri5cy.S 
 
-OP_LEVEL = -O2
+OP_LEVEL = -O0
 DBFLAGS = -DNDEBUG -DCPU_RV32M1_ri5cy -DPRINTF_FLOAT_ENABLE=0 -DSCANF_FLOAT_ENABLE=0 -DPRINTF_ADVANCED_ENABLE=0 -DSCANF_ADVANCED_ENABLE=0 -DHIGH_LEVEL_OPTIMIZE=0
 # CFLAGS for MP-file
 CFLAGS = $(INC) $(DBFLAGS) $(OP_LEVEL) -msmall-data-limit=8 -mno-save-restore -flto -g -fmessage-length=0 -fsigned-char -fno-common -ffreestanding -fno-builtin -std=gnu99 -march=rv32imcxpulpv2 -Wa,-march=rv32imcxpulpv2 -fno-strict-aliasing
@@ -52,10 +54,15 @@ SRC_C = \
 	led.c \
 	rng.c \
 	spi.c \
+	event.c \
+	fatfs_port.c \
+	fsl_host.c \
+	sdcard.c \
 	py_time.c \
 	modpyb.c \
 	systick.c \
 	modmcu.c \
+	moduos.c \
 	usrsw.c \
 	oled_128128.c \
 	modmachine.c \
@@ -82,10 +89,18 @@ SRC_C = \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_lpuart.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_lpspi.c \
 	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_trng.c \
+	$(VEGA_SDK)/devices/RV32M1/drivers/fsl_usdhc.c \
+	$(VEGA_SDK)/middleware/sdmmc_2.1.2/src/fsl_sd.c \
+	$(VEGA_SDK)/middleware/sdmmc_2.1.2/src/fsl_sdmmc.c \
 	lib/utils/stdout_helpers.c \
 	lib/utils/pyexec.c \
+	lib/timeutils/timeutils.c \
 	lib/utils/interrupt_char.c \
-	lib/mp-readline/readline.c
+	lib/mp-readline/readline.c \
+	lib/oofatfs/ff.c \
+	lib/oofatfs/option/ccsbcs.c \
+	extmod/vfs.c \
+	$(wildcard extmod/vfs_*.c)
 
 OBJ = $(PY_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o)) $(addprefix $(BUILD)/, $(ASM_SRCS:.S=.o))
 

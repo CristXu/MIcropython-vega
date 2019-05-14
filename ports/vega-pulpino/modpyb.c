@@ -40,6 +40,7 @@
 #include "led.h"
 #include "rng.h"
 #include "irq.h"
+#include "sdcard.h"
 #include "usrsw.h"
 #include "test.h"
 #include "py_swim.h"
@@ -76,6 +77,10 @@ STATIC const mp_rom_map_elem_t pyb_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_pyboard), MP_ROM_PTR(&pyb_pyboard_type) },
 #if MICROPY_HW_ENABLE_RNG
 	{ MP_ROM_QSTR(MP_QSTR_rng), MP_ROM_PTR(&pyb_rng_getnum_obj) },
+#endif
+#if MICROPY_HW_HAS_SDCARD
+	{ MP_ROM_QSTR(MP_QSTR_SD), MP_ROM_PTR(&pyb_sdcard_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_SDCard), MP_ROM_PTR(&pyb_sdcard_type) },
 #endif
 	{ MP_ROM_QSTR(MP_QSTR_SWIM), MP_ROM_PTR(&pyb_swim_type) },
 	{ MP_ROM_QSTR(MP_QSTR_IMU), MP_ROM_PTR(&pyb_imu_type) },
