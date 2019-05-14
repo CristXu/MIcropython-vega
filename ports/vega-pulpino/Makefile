@@ -12,7 +12,7 @@ QSTR_DEFS = qstrdefsport.h
 # include py core make definitions
 include $(TOP)/py/py.mk
 
-CROSS_COMPILE = /opt/pulp/bin/riscv32-unknown-elf-
+CROSS_COMPILE = /opt/riscv32-unknown-elf-gcc/bin/riscv32-unknown-elf-
 
 INC += -I.
 INC += -I$(TOP)
@@ -38,7 +38,7 @@ DBFLAGS = -DNDEBUG -DCPU_RV32M1_ri5cy -DPRINTF_FLOAT_ENABLE=0 -DSCANF_FLOAT_ENAB
 # CFLAGS for MP-file
 CFLAGS = $(INC) $(DBFLAGS) $(OP_LEVEL) -msmall-data-limit=8 -mno-save-restore -flto -g -fmessage-length=0 -fsigned-char -fno-common -ffreestanding -fno-builtin -std=gnu99 -march=rv32imcxpulpv2 -Wa,-march=rv32imcxpulpv2 -fno-strict-aliasing
 # LDFLAGS is for the input SRC_C
-LDFLAGS = -T RV32M1_ri5cy_flash.ld -g -nostdlib -flto $(OP_LEVEL) -fno-strict-aliasing -Wl,-Map,micropython.map -march=rv32imcxpulpv2 -Xlinker -static -Xlinker -z -Xlinker muldefs -Xlinker -static -Xlinker -z -Xlinker muldefs
+LDFLAGS = -T RV32M1_ri5cy_flash.ld -g -nostdlib -flto $(OP_LEVEL) -fno-strict-aliasing -Wl,-Map,$(BUILD)/micropython.map -march=rv32imcxpulpv2 -Xlinker -static -Xlinker -z -Xlinker muldefs -Xlinker -static -Xlinker -z -Xlinker muldefs
 LIBS = -lnosys -lgcc -lc -lm -lm -lg -lgcc -lnosys -Xlinker --end-group 
 
 SRC_C = \

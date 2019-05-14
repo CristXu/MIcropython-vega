@@ -83,12 +83,13 @@ soft_reset:
 	icon_main.data = big;
 	lcd_init(24000000);
 	lcd_paint_block((240-icon_main.w)/2, (320-icon_main.h)/2, &icon_main);
+	LPSPI_Deinit(LPSPI0);
 #endif
     mp_stack_set_top(&_estack);
     mp_stack_set_limit(&_stack_size);
     gc_init(&_heap_start, &_heap_end);
     mp_init();
-	//in face, the pyexec_friendly_repl() will answer the input from the repl, such as CTRL_D, then do the related operation or quit the function with a exit_value code, judge the value jump to correspoding function
+	//in fact, the pyexec_friendly_repl() will answer the input from the repl, such as CTRL_D, then do the related operation or quit the function with a exit_value code, judge the value jump to correspoding function
     retCode = pyexec_friendly_repl();
     mp_deinit();
 	if(retCode & PYEXEC_FORCED_EXIT)
