@@ -162,7 +162,7 @@ while(True):
 	lcd.put_text_block_xy("fAngle  = ", 50, 180)
 	string = "[%.3f, %.3f, %.3f]"%(fAngle[0],fAngle[1],fAngle[2])
 	x0 = (240 - len(string)*wFont)//2;
-	lcd.clear_const_block(x0,210,LCD.BLACK,240-2*x0,hFont)
+	lcd.clear_const_block(10,210,LCD.BLACK,220,hFont)
 	lcd.put_text_block_xy(string, x0, 210)
 	end = time.ticks()
 	eDisplay = time.ticks();
