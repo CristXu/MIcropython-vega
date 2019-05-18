@@ -174,6 +174,18 @@ STATIC mp_obj_t pyb_lcd_set_font(size_t n_args, const mp_obj_t *args) {
 	return mp_const_none;
 }
 
+STATIC mp_obj_t pyb_lcd_put_img(size_t n_args, const mp_obj_t *args)
+{
+	pyb_lcd_obj_t *self = MP_OBJ_TO_PTR(args[0]);
+	uint32_t x = mp_obj_get_int(args[4]);
+	uint32_t y = mp_obj_get_int(args[5]);
+	block_t img;
+	img.w = mp_obj_get_int(args[2]);
+	img.h = mp_obj_get_int(args[3]);
+	img.data = (uint16_t*)mp_obj_str_get_str(args[1]);
+	lcd_paint_block(x,y,&img);
+	return mp_const_none;
+}
 STATIC mp_obj_t pyb_lcd_put_icon_xy(size_t n_args, const mp_obj_t *args) {
 	pyb_lcd_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     mp_int_t x = mp_obj_get_int(args[1]);
@@ -246,6 +258,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(pyb_lcd_get_icon_size_obj, pyb_lcd_get_icon_siz
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_icon_xy_obj, 3, 4, pyb_lcd_put_icon_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_char_xy_obj, 4, 5, pyb_lcd_put_char_xy);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_set_font_obj, 1, 2, pyb_lcd_set_font);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(pyb_lcd_put_img_obj, 6, 6, pyb_lcd_put_img);
 
 STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&pyb_lcd_init_obj) },
@@ -260,6 +273,7 @@ STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
 	{ MP_ROM_QSTR(MP_QSTR_get_icon_size), MP_ROM_PTR(&pyb_lcd_get_icon_size_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_put_icon_xy), MP_ROM_PTR(&pyb_lcd_put_icon_xy_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_put_char_xy), MP_ROM_PTR(&pyb_lcd_put_char_xy_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_put_img), MP_ROM_PTR(&pyb_lcd_put_img_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_set_font), MP_ROM_PTR(&pyb_lcd_set_font_obj) },
 
     // Const value
