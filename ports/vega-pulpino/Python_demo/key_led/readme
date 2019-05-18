@@ -1,0 +1,3 @@
+the demo : use the button2-4 to control the r-g-b led, and then display the led-state on the LCD.
+you can change the state-pic with yourself, and use the convert_bin.py to generate the bin-file, place 
+the file into the SDcard, then use the led+key+lcd.py to read the bin-file and start the demo.
