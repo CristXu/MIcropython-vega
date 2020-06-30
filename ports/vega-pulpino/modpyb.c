@@ -42,13 +42,21 @@
 #include "irq.h"
 #include "sdcard.h"
 #include "usrsw.h"
+#include "storage.h"
 #include "test.h"
 #include "py_swim.h"
 #include "py_imu.c"
 #include "py_lcd.h"
 #include "modmachine.h"
 
+extern uint32_t get_fattime();
+mp_obj_t get_fattime_obj(){
+	uint32_t time = get_fattime();
+	return mp_obj_new_int(time);
+}
+MP_DEFINE_CONST_FUN_OBJ_0(py_get_fattime_obj, get_fattime_obj);
 
+extern const mp_obj_type_t  mp_fat_vfs_type;
 STATIC const mp_rom_map_elem_t pyb_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_pyb) },
 #if MICROPY_HW_HAS_FS_MOUNT
@@ -64,6 +72,7 @@ STATIC const mp_rom_map_elem_t pyb_module_globals_table[] = {
 #endif
 #if MICROPY_HW_HAS_FS
     { MP_ROM_QSTR(MP_QSTR_VfsFat), MP_ROM_PTR(&mp_fat_vfs_type) },
+	{ MP_ROM_QSTR(MP_QSTR_FatTime), (mp_obj_t)&py_get_fattime_obj},
 #endif
 #if MICRO_HW_HAS_I2C
     { MP_ROM_QSTR(MP_QSTR_I2C), MP_ROM_PTR(&pyb_i2c_type) },
@@ -77,6 +86,10 @@ STATIC const mp_rom_map_elem_t pyb_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_pyboard), MP_ROM_PTR(&pyb_pyboard_type) },
 #if MICROPY_HW_ENABLE_RNG
 	{ MP_ROM_QSTR(MP_QSTR_rng), MP_ROM_PTR(&pyb_rng_getnum_obj) },
+#endif
+#if MICROPY_HW_HAS_FLASH
+	{ MP_ROM_QSTR(MP_QSTR_flash), MP_ROM_PTR(&pyb_flash_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_Flash), MP_ROM_PTR(&pyb_flash_type) },
 #endif
 #if MICROPY_HW_HAS_SDCARD
 	{ MP_ROM_QSTR(MP_QSTR_SD), MP_ROM_PTR(&pyb_sdcard_obj) },
@@ -99,4 +112,20 @@ const mp_obj_module_t pyb_module = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t*)&pyb_module_globals,
 };   
+
+#include "extmod/vfs.h"
+STATIC const mp_rom_map_elem_t ioctl_globals_table[] = {
+	{MP_ROM_QSTR(MP_QSTR_INIT), MP_ROM_INT(BP_IOCTL_INIT)},
+	{MP_ROM_QSTR(MP_QSTR_DEINIT), MP_ROM_INT(BP_IOCTL_DEINIT)},
+	{MP_ROM_QSTR(MP_QSTR_SYNC), MP_ROM_INT(BP_IOCTL_SYNC)},
+	{MP_ROM_QSTR(MP_QSTR_SEC_COUNT), MP_ROM_INT(BP_IOCTL_SEC_COUNT)},
+	{MP_ROM_QSTR(MP_QSTR_SEC_SIZE), MP_ROM_INT(BP_IOCTL_SEC_SIZE)},
+
+};
+STATIC MP_DEFINE_CONST_DICT(ioctl_globals, ioctl_globals_table);
+const mp_obj_module_t ioctl_key = {
+	.base = {&mp_type_module},
+	.globals = (mp_obj_dict_t*)&ioctl_globals,
+};
+
 

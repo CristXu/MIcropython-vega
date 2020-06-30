@@ -7,11 +7,13 @@
 #define MP_SSIZE_MAX (0x7fffffff)
 
 #define MICRO_HW_HAS_I2C           (1)
+#define MICROPY_HW_HAS_FS          (1)
 #define MICRO_HW_HAS_LED           (1)
 #define MICROPY_HW_HAS_SWITCH      (1)
 #define MICROPY_HW_DISPLAY_ICON    (1)
 #define MICROPY_HW_ENABLE_RNG      (1)
-#define MICROPY_HW_HAS_FS_MOUNT    (0)   
+#define MICROPY_HW_HAS_FS_MOUNT    (0) 
+#define MICROPY_HW_HAS_FLASH       (1)  
 #define MICROPY_HW_HAS_SDCARD      (1)
 #define MICROPY_HW_HAS_ADC         (0)
 // options to control how MicroPython is built
@@ -99,11 +101,15 @@ extern const struct _mp_obj_module_t pyb_module;
 extern const struct _mp_obj_module_t time_module;
 extern const struct _mp_obj_module_t mcu_module;
 extern const struct _mp_obj_module_t mp_module_uos;
+extern const struct _mp_obj_module_t ioctl_key;
+extern const struct _mp_obj_fun_builtin_fixed_t pyb_flash_update_obj;
+extern const struct _mp_obj_fun_builtin_fixed_t pyb_flash_restore_obj;
 
 #define MICROPY_PORT_BUILTIN_MODULES \
 	{ MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) },	\
 	{ MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) },	\
     { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) }, \
+	{ MP_ROM_QSTR(MP_QSTR_ioctl_key), MP_ROM_PTR(&ioctl_key)}, \
 	{ MP_ROM_QSTR(MP_QSTR_os), MP_ROM_PTR(&mp_module_uos) }, \
 	{ MP_ROM_QSTR(MP_QSTR_time), MP_ROM_PTR(&time_module) }, \
 	{ MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) },
@@ -112,6 +118,7 @@ extern const struct _mp_obj_module_t mp_module_uos;
 	{ MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) },	\
 	{ MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) },	\
     { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) }, \
+	{ MP_ROM_QSTR(MP_QSTR_ioctl_key), MP_ROM_PTR(&ioctl_key)}, \
 	{ MP_ROM_QSTR(MP_QSTR_mcu), MP_ROM_PTR(&mcu_module) },
 
 // type definitions for the specific machine
@@ -138,6 +145,8 @@ typedef enum _enum_rootPtrs
 
 // extra built in names to add to the global namespace
 #define MICROPY_PORT_BUILTINS \
+	{ MP_ROM_QSTR(MP_QSTR_update_fs), (mp_obj_t)(&pyb_flash_update_obj)}, \
+	{ MP_ROM_QSTR(MP_QSTR_restore_fs), (mp_obj_t)(&pyb_flash_restore_obj)}, \
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
 // We need to provide a declaration/definition of alloca()

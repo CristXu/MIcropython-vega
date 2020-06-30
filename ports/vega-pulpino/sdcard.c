@@ -188,11 +188,11 @@ status_t sdcard_init(void) {
 
 	/* wait card insert */
 	uint32_t t1 = HAL_GetTick();
-	PRINTF("Please insert the sdcard in 10s if needed!\r\n");
+	PRINTF("Please insert the sdcard in 1s if needed!\r\n");
 	while (!CardDetect())
 	{
 		// wait 5s to insert the sdcard if need
-		if (( HAL_GetTick() -  t1 ) > 10000)
+		if (( HAL_GetTick() -  t1 ) > 1000)
 		{
 			PRINTF("Boot without sdcard!\r\n");
 			return kWithout_Sdcard;
